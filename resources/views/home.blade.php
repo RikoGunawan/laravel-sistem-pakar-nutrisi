@@ -15,7 +15,7 @@
 
     .hero h1 {
         font-size: 2.5em;
-        color: #667eea;
+        color: #000000;
         margin-bottom: 20px;
     }
 
@@ -48,7 +48,7 @@
     .stat-number {
         font-size: 2em;
         font-weight: bold;
-        color: #667eea;
+        color: #ff724c;
         margin-bottom: 10px;
     }
 
@@ -71,7 +71,7 @@
     }
 
     .info-card h3 {
-        color: #667eea;
+        color: #ff724c;
         margin-bottom: 15px;
         display: flex;
         align-items: center;
@@ -110,7 +110,7 @@
         </div>
     </div>
 
-    <h2 style="color: white; text-align: center; margin-bottom: 30px;">📚 Informasi Gizi Terkini</h2>
+    <h2 style="text-align: center; margin-bottom: 30px;">📚 Informasi Gizi Terkini</h2>
 
     <div class="info-grid">
         @foreach($informasiGizi as $info)

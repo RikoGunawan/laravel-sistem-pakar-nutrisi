@@ -197,7 +197,7 @@
     }
 
     .help-content h3 {
-        color: #667eea;
+        color: #000000;
         margin-bottom: 20px;
     }
 
@@ -232,7 +232,7 @@
 
 @section('content')
     <div class="card">
-        <h1 style="color: #667eea; margin-bottom: 15px;">🔬 Analisis Nutrisi Makanan</h1>
+        <h1 style="color: #000000; margin-bottom: 15px;">🔬 Analisis Nutrisi Makanan</h1>
         <p style="color: #666; margin-bottom: 25px;">Bandingkan perubahan nutrisi berdasarkan metode pengolahan yang berbeda</p>
 
         <a href="#" class="help-btn" onclick="showHelp(); return false;">❓ Tutorial Cara Analisis</a>
@@ -258,7 +258,7 @@
                     <div class="method-grid">
                         @foreach($metodeList as $metode)
                             <label for="metode_{{ $metode->id }}" class="method-card" data-metode-id="{{ $metode->id }}">
-                                <input type="checkbox" name="metode_ids[]" value="{{ $metode->id }}" 
+                                <input type="checkbox" name="metode_ids[]" value="{{ $metode->id }}"
                                        id="metode_{{ $metode->id }}" class="method-checkbox">
                                 <div class="method-icon">{{ $metode->icon }}</div>
                                 <div class="method-name">{{ $metode->name }}</div>
@@ -308,7 +308,7 @@
         card.addEventListener('click', function() {
             const checkbox = this.querySelector('input[type="checkbox"]');
             checkbox.checked = !checkbox.checked;
-            
+
             if (checkbox.checked) {
                 this.classList.add('selected');
                 addSelectedMethod(checkbox.value, this.querySelector('.method-name').textContent);
@@ -316,7 +316,7 @@
                 this.classList.remove('selected');
                 removeSelectedMethod(checkbox.value);
             }
-            
+
             updateAnalyzeButton();
         });
     });
@@ -331,7 +331,7 @@
     function removeSelectedMethod(id) {
         selectedMethods = selectedMethods.filter(m => m.id !== id);
         updateSelectedList();
-        
+
         // Uncheck checkbox
         document.querySelector(`#metode_${id}`).checked = false;
         document.querySelector(`label[data-metode-id="${id}"]`).classList.remove('selected');
@@ -354,7 +354,7 @@
     function updateAnalyzeButton() {
         const makananSelected = document.getElementById('makananSelect').value;
         const metodesSelected = selectedMethods.length > 0;
-        
+
         analyzeBtn.disabled = !(makananSelected && metodesSelected);
     }
 

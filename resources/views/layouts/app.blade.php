@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #f8f9fa 0%, #f8f9fa 100%);
             min-height: 100vh;
         }
 
@@ -35,7 +35,7 @@
         .navbar-brand {
             font-size: 1.5em;
             font-weight: bold;
-            color: #667eea;
+            color: #000000;
             text-decoration: none;
         }
 
@@ -54,7 +54,7 @@
 
         .navbar-menu a:hover,
         .navbar-menu a.active {
-            color: #667eea;
+            color: #ff724c;
         }
 
         .container {
@@ -84,7 +84,7 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ffa500 0%, #ff7518 100%);
             color: white;
         }
 
@@ -134,7 +134,7 @@
     <!-- Navbar -->
     <nav class="navbar">
         <div class="navbar-container">
-            <a href="{{ route('home') }}" class="navbar-brand">🍽️ Nutrisi App</a>
+            <a href="{{ route('home') }}" class="navbar-brand">🍽️ Knowfood</a>
             <ul class="navbar-menu">
                 <li><a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">Home</a></li>
                 <li><a href="{{ route('makanan.index') }}" class="{{ request()->routeIs('makanan.*') ? 'active' : '' }}">Makanan</a></li>

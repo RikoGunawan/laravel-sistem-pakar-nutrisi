@@ -1,230 +1,178 @@
 @extends('layouts.app')
 
-@section('title', 'Analisis Nutrisi Makanan')
+@section('title', 'Hasil Analisis')
 
 @section('styles')
 <style>
-    .help-btn {
-        display: inline-block;
-        padding: 10px 20px;
-        background: #ffc107;
-        color: #333;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: 600;
-        margin-bottom: 20px;
-        transition: all 0.3s;
-    }
-
-    .help-btn:hover {
-        background: #e0a800;
-        transform: translateY(-2px);
-    }
-
-    .form-section {
-        background: #f8f9fa;
-        padding: 25px;
+    .result-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
         border-radius: 12px;
-        margin-bottom: 25px;
-    }
-
-    .form-group {
-        margin-bottom: 25px;
-    }
-
-    .form-label {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 10px;
-        color: #333;
-        font-size: 1.1em;
-    }
-
-    .form-select {
-        width: 100%;
-        padding: 12px;
-        border: 2px solid #e0e0e0;
-        border-radius: 8px;
-        font-size: 1em;
-        background: white;
-    }
-
-    .method-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 15px;
-        margin-top: 15px;
-    }
-
-    .method-card {
-        background: white;
-        border: 3px solid #e0e0e0;
-        border-radius: 12px;
-        padding: 20px;
+        margin-bottom: 30px;
         text-align: center;
-        cursor: pointer;
-        transition: all 0.3s;
-        position: relative;
     }
 
-    .method-card:hover {
-        border-color: #667eea;
-        transform: scale(1.05);
+    .result-header h1 {
+        margin-bottom: 10px;
     }
 
-    .method-card.selected {
-        border-color: #667eea;
-        background: #f0f3ff;
+    .comparison-table-wrapper {
+        overflow-x: auto;
+        margin-bottom: 30px;
     }
 
-    .method-card.selected::after {
-        content: '✓';
-        position: absolute;
-        top: 5px;
-        right: 10px;
+    .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        min-width: 600px;
+    }
+
+    .comparison-table th {
+        background: #667eea;
+        color: white;
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+    }
+
+    .comparison-table td {
+        padding: 15px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .comparison-table tr:hover {
+        background: #f8f9fa;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.85em;
+        font-weight: 600;
+        margin-left: 8px;
+    }
+
+    .badge-danger {
+        background: #dc3545;
+        color: white;
+    }
+
+    .badge-success {
         background: #28a745;
         color: white;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
     }
 
-    .method-icon {
-        font-size: 2.5em;
-        margin-bottom: 10px;
-    }
-
-    .method-name {
-        font-weight: 600;
+    .badge-warning {
+        background: #ffc107;
         color: #333;
     }
 
-    .method-checkbox {
-        display: none;
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
     }
 
-    .selected-methods {
-        margin-top: 20px;
-        padding: 20px;
-        background: white;
+    .summary-card {
+        padding: 25px;
+        border-radius: 12px;
+        text-align: center;
+    }
+
+    .summary-card.best {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        border: 3px solid #28a745;
+    }
+
+    .summary-card.worst {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        border: 3px solid #dc3545;
+    }
+
+    .summary-card.neutral {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border: 3px solid #ffc107;
+    }
+
+    .summary-icon {
+        font-size: 3em;
+        margin-bottom: 10px;
+    }
+
+    .summary-title {
+        font-size: 0.95em;
+        color: #666;
+        margin-bottom: 8px;
+    }
+
+    .summary-method {
+        font-size: 1.5em;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .summary-desc {
+        font-size: 0.9em;
+        color: #666;
+    }
+
+    .recommendation-box {
+        background: #d4edda;
+        border-left: 4px solid #28a745;
+        padding: 25px;
         border-radius: 8px;
-        border: 2px solid #667eea;
+        margin-bottom: 20px;
     }
 
-    .selected-methods h4 {
-        color: #667eea;
+    .recommendation-box h3 {
+        color: #155724;
         margin-bottom: 15px;
     }
 
-    .selected-method-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 12px;
-        background: #f8f9fa;
-        border-radius: 6px;
-        margin-bottom: 10px;
-    }
-
-    .selected-method-name {
-        font-weight: 600;
-        color: #333;
-    }
-
-    .remove-method-btn {
-        padding: 5px 12px;
-        background: #dc3545;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
-    }
-
-    .analyze-btn {
-        width: 100%;
-        padding: 18px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 12px;
-        font-size: 1.2em;
-        font-weight: 600;
-        cursor: pointer;
-        margin-top: 25px;
-        transition: all 0.3s;
-    }
-
-    .analyze-btn:hover:not(:disabled) {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-    }
-
-    .analyze-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    .help-modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 1000;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-    }
-
-    .help-modal.active {
-        display: flex;
-    }
-
-    .help-content {
-        background: white;
-        padding: 30px;
-        border-radius: 12px;
-        max-width: 600px;
-        max-height: 80vh;
-        overflow-y: auto;
-    }
-
-    .help-content h3 {
-        color: #667eea;
-        margin-bottom: 20px;
-    }
-
-    .help-content ol {
+    .recommendation-box ul {
         margin-left: 20px;
         line-height: 1.8;
+        color: #155724;
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        justify-content: center;
     }
 
     @media (max-width: 768px) {
-        .method-grid {
-            grid-template-columns: repeat(2, 1fr);
+        .result-header {
+            padding: 20px;
         }
 
-        .form-section {
-            padding: 15px;
+        .result-header h1 {
+            font-size: 1.5em;
         }
 
-        .selected-method-item {
-            flex-direction: column;
-            gap: 10px;
-            text-align: center;
+        .comparison-table th,
+        .comparison-table td {
+            padding: 10px;
+            font-size: 0.9em;
         }
-    }
 
-    @media (max-width: 480px) {
-        .method-grid {
+        .summary-grid {
             grid-template-columns: 1fr;
+        }
+
+        .btn-group {
+            flex-direction: column;
+        }
+
+        .btn-group .btn {
+            width: 100%;
         }
     }
 </style>
@@ -232,147 +180,127 @@
 
 @section('content')
     <div class="card">
-        <h1 style="color: #667eea; margin-bottom: 15px;">🔬 Analisis Nutrisi Makanan</h1>
-        <p style="color: #666; margin-bottom: 25px;">Bandingkan perubahan nutrisi berdasarkan metode pengolahan yang berbeda</p>
+        <div class="result-header">
+            <h1>📊 Hasil Analisis: {{ $analisis->makanan->name }}</h1>
+            <p>Komparasi {{ count($analisis->analisisMetode) }} Metode Pengolahan</p>
+        </div>
 
-        <a href="#" class="help-btn" onclick="showHelp(); return false;">❓ Tutorial Cara Analisis</a>
+        <h2 style="color: #667eea; margin-bottom: 20px;">📈 Tabel Komparasi Nutrisi</h2>
 
-        <form action="{{ route('analisis.analyze') }}" method="POST" id="analisisForm">
-            @csrf
-
-            <div class="form-section">
-                <div class="form-group">
-                    <label class="form-label">1. Pilih Makanan</label>
-                    <select name="makanan_id" id="makananSelect" class="form-select" required>
-                        <option value="">-- Pilih Makanan --</option>
-                        @foreach($makananList as $makanan)
-                            <option value="{{ $makanan->id }}" {{ request('makanan') == $makanan->id ? 'selected' : '' }}>
-                                {{ $makanan->image }} {{ $makanan->name }} ({{ $makanan->kategori }})
-                            </option>
+        <div class="comparison-table-wrapper">
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Nutrisi</th>
+                        <th>🥩 Mentah</th>
+                        @foreach($analisis->analisisMetode as $am)
+                            <th>{{ $am->metodePengolahan->icon }} {{ $am->metodePengolahan->name }}</th>
                         @endforeach
-                    </select>
-                </div>
+                    </tr>
+                </thead>
+                <tbody>
+                    @php
+                        $nutrisiLabels = [
+                            'protein' => 'Protein (g)',
+                            'lemak' => 'Lemak (g)',
+                            'karbohidrat' => 'Karbohidrat (g)',
+                            'kalori' => 'Kalori (kkal)',
+                            'vitamin_c' => 'Vitamin C (mg)',
+                            'vitamin_b_complex' => 'Vitamin B (avg)',
+                        ];
+                    @endphp
 
-                <div class="form-group">
-                    <label class="form-label">2. Pilih Metode Pengolahan (Minimal 1, bisa lebih)</label>
-                    <div class="method-grid">
-                        @foreach($metodeList as $metode)
-                            <label for="metode_{{ $metode->id }}" class="method-card" data-metode-id="{{ $metode->id }}">
-                                <input type="checkbox" name="metode_ids[]" value="{{ $metode->id }}" 
-                                       id="metode_{{ $metode->id }}" class="method-checkbox">
-                                <div class="method-icon">{{ $metode->icon }}</div>
-                                <div class="method-name">{{ $metode->name }}</div>
-                            </label>
-                        @endforeach
-                    </div>
+                    @foreach($nutrisiLabels as $key => $label)
+                        <tr>
+                            <td><strong>{{ $label }}</strong></td>
+                            <td>{{ number_format($analisis->nutrisi_mentah[$key], 2) }}</td>
+                            @foreach($analisis->analisisMetode as $am)
+                                @php
+                                    $nilai = $am->nutrisi_hasil[$key];
+                                    $perubahan = $am->perubahan_persen[$key] ?? 0;
+                                    $badgeClass = $perubahan > 0 ? 'badge-danger' : ($perubahan < 0 ? 'badge-warning' : 'badge-success');
+                                    $icon = $perubahan > 0 ? '↑' : ($perubahan < 0 ? '↓' : '→');
+                                @endphp
+                                <td>
+                                    {{ number_format($nilai, 2) }}
+                                    <span class="badge {{ $badgeClass }}">
+                                        {{ $icon }} {{ $perubahan > 0 ? '+' : '' }}{{ $perubahan }}%
+                                    </span>
+                                </td>
+                            @endforeach
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
 
-                    <div class="selected-methods" id="selectedMethods" style="display: none;">
-                        <h4>✓ Metode Terpilih:</h4>
-                        <div id="selectedMethodsList"></div>
-                    </div>
-                </div>
+        <h2 style="color: #667eea; margin-bottom: 20px;">📊 Ringkasan Komparasi</h2>
 
-                <button type="submit" class="analyze-btn" id="analyzeBtn" disabled>
-                    🔬 Analisis & Bandingkan
-                </button>
+        <div class="summary-grid">
+            @php
+                $metodeTerbaik = null;
+                $metodeKaloriTinggi = null;
+                $metodeLemakRendah = null;
+
+                $minVitaminLoss = 100;
+                $maxKalori = 0;
+                $minLemak = PHP_INT_MAX;
+
+                foreach($analisis->analisisMetode as $am) {
+                    $vitaminLoss = abs($am->perubahan_persen['vitamin_c'] ?? 0);
+                    if ($vitaminLoss < $minVitaminLoss) {
+                        $minVitaminLoss = $vitaminLoss;
+                        $metodeTerbaik = $am->metodePengolahan;
+                    }
+
+                    if ($am->nutrisi_hasil['kalori'] > $maxKalori) {
+                        $maxKalori = $am->nutrisi_hasil['kalori'];
+                        $metodeKaloriTinggi = $am->metodePengolahan;
+                    }
+
+                    if ($am->nutrisi_hasil['lemak'] < $minLemak) {
+                        $minLemak = $am->nutrisi_hasil['lemak'];
+                        $metodeLemakRendah = $am->metodePengolahan;
+                    }
+                }
+            @endphp
+
+            <div class="summary-card best">
+                <div class="summary-icon">🏆</div>
+                <div class="summary-title">Terbaik untuk Nutrisi</div>
+                <div class="summary-method">{{ $metodeTerbaik->icon }} {{ $metodeTerbaik->name }}</div>
+                <div class="summary-desc">Kehilangan vitamin hanya {{ $minVitaminLoss }}%</div>
             </div>
-        </form>
-    </div>
 
-    <!-- Help Modal -->
-    <div class="help-modal" id="helpModal">
-        <div class="help-content">
-            <h3>📖 Cara Menggunakan Analisis Nutrisi</h3>
-            <ol>
-                <li><strong>Pilih Makanan</strong> yang ingin Anda analisis dari dropdown</li>
-                <li><strong>Pilih Metode Pengolahan</strong> dengan klik card metode. Anda bisa pilih lebih dari satu untuk membandingkan</li>
-                <li>Metode yang terpilih akan ditandai dengan ✓ hijau</li>
-                <li>Klik tombol <strong>"Analisis & Bandingkan"</strong> untuk melihat hasil</li>
-                <li>Anda akan melihat tabel komparasi nutrisi antar metode</li>
-                <li>Sistem akan memberikan rekomendasi metode terbaik</li>
-            </ol>
-            <button onclick="closeHelp()" class="btn btn-primary" style="margin-top: 20px;">Mengerti</button>
+            <div class="summary-card worst">
+                <div class="summary-icon">⚠️</div>
+                <div class="summary-title">Paling Tinggi Kalori</div>
+                <div class="summary-method">{{ $metodeKaloriTinggi->icon }} {{ $metodeKaloriTinggi->name }}</div>
+                <div class="summary-desc">Kalori: {{ number_format($maxKalori, 0) }} kkal</div>
+            </div>
+
+            <div class="summary-card neutral">
+                <div class="summary-icon">💪</div>
+                <div class="summary-title">Rendah Lemak</div>
+                <div class="summary-method">{{ $metodeLemakRendah->icon }} {{ $metodeLemakRendah->name }}</div>
+                <div class="summary-desc">Lemak: {{ number_format($minLemak, 2) }}g</div>
+            </div>
+        </div>
+
+        @if($analisis->rekomendasi->count() > 0)
+            <div class="recommendation-box">
+                <h3>✅ Rekomendasi Berdasarkan Tujuan</h3>
+                <ul>
+                    @foreach($analisis->rekomendasi as $rek)
+                        <li><strong>{{ ucwords(str_replace('_', ' ', $rek->jenis)) }}:</strong> {{ $rek->alasan }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <div class="btn-group">
+            <a href="{{ route('analisis.index') }}" class="btn btn-secondary">← Analisis Lagi</a>
+            <a href="{{ route('analisis.trace', $analisis->id) }}" class="btn btn-primary">📋 Lihat Trace Penalaran</a>
         </div>
     </div>
-@endsection
-
-@section('scripts')
-<script>
-    const methodCards = document.querySelectorAll('.method-card');
-    const selectedMethodsDiv = document.getElementById('selectedMethods');
-    const selectedMethodsList = document.getElementById('selectedMethodsList');
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    let selectedMethods = [];
-
-    methodCards.forEach(card => {
-        card.addEventListener('click', function() {
-            const checkbox = this.querySelector('input[type="checkbox"]');
-            checkbox.checked = !checkbox.checked;
-            
-            if (checkbox.checked) {
-                this.classList.add('selected');
-                addSelectedMethod(checkbox.value, this.querySelector('.method-name').textContent);
-            } else {
-                this.classList.remove('selected');
-                removeSelectedMethod(checkbox.value);
-            }
-            
-            updateAnalyzeButton();
-        });
-    });
-
-    function addSelectedMethod(id, name) {
-        if (!selectedMethods.find(m => m.id === id)) {
-            selectedMethods.push({ id, name });
-            updateSelectedList();
-        }
-    }
-
-    function removeSelectedMethod(id) {
-        selectedMethods = selectedMethods.filter(m => m.id !== id);
-        updateSelectedList();
-        
-        // Uncheck checkbox
-        document.querySelector(`#metode_${id}`).checked = false;
-        document.querySelector(`label[data-metode-id="${id}"]`).classList.remove('selected');
-    }
-
-    function updateSelectedList() {
-        if (selectedMethods.length > 0) {
-            selectedMethodsDiv.style.display = 'block';
-            selectedMethodsList.innerHTML = selectedMethods.map(m => `
-                <div class="selected-method-item">
-                    <span class="selected-method-name">${m.name}</span>
-                    <button type="button" class="remove-method-btn" onclick="removeSelectedMethod('${m.id}')">✕</button>
-                </div>
-            `).join('');
-        } else {
-            selectedMethodsDiv.style.display = 'none';
-        }
-    }
-
-    function updateAnalyzeButton() {
-        const makananSelected = document.getElementById('makananSelect').value;
-        const metodesSelected = selectedMethods.length > 0;
-        
-        analyzeBtn.disabled = !(makananSelected && metodesSelected);
-    }
-
-    document.getElementById('makananSelect').addEventListener('change', updateAnalyzeButton);
-
-    function showHelp() {
-        document.getElementById('helpModal').classList.add('active');
-    }
-
-    function closeHelp() {
-        document.getElementById('helpModal').classList.remove('active');
-    }
-
-    // Close modal when clicking outside
-    document.getElementById('helpModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeHelp();
-        }
-    });
-</script>
 @endsection
