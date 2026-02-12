@@ -162,11 +162,13 @@ class AnalisisController extends Controller
                 $changes[$metode] = $data['perubahan_persen'][$nutrisi] ?? 0;
             }
 
-            arsort($changes);
-            $summary['perubahan_tertinggi'][$nutrisi] = array_key_first($changes);
+            if (!empty($changes)) {
+                arsort($changes);
+                $summary['perubahan_tertinggi'][$nutrisi] = array_key_first($changes);
 
-            asort($changes);
-            $summary['perubahan_terendah'][$nutrisi] = array_key_first($changes);
+                asort($changes);
+                $summary['perubahan_terendah'][$nutrisi] = array_key_first($changes);
+            }
         }
 
         return json_encode($summary);
@@ -177,6 +179,10 @@ class AnalisisController extends Controller
      */
     private function findBestMethod($hasilKomparasi)
     {
+        if (empty($hasilKomparasi)) {
+            return null;
+        }
+
         $scores = [];
 
         foreach ($hasilKomparasi as $metode => $data) {
@@ -203,31 +209,42 @@ class AnalisisController extends Controller
 
     /**
      * HELPER: Generate recommendations based on analysis
+     * FIXED: Prevent null metode_rekomendasi
      */
     private function generateRecommendations($analisis, $hasilKomparasi)
     {
+        // Check if empty
+        if (empty($hasilKomparasi)) {
+            return;
+        }
+
         $recommendations = [];
 
         // 1. Rekomendasi untuk diet rendah kalori
-        $minKalori = PHP_INT_MAX;
+        $minKalori = PHP_FLOAT_MAX; // FIXED: Use FLOAT_MAX instead of INT_MAX
         $metodeKaloriRendah = null;
+
         foreach ($hasilKomparasi as $metode => $data) {
-            if ($data['nutrisi_hasil']['kalori'] < $minKalori) {
+            if (isset($data['nutrisi_hasil']['kalori']) && $data['nutrisi_hasil']['kalori'] < $minKalori) {
                 $minKalori = $data['nutrisi_hasil']['kalori'];
                 $metodeKaloriRendah = $metode;
             }
         }
 
-        $recommendations[] = [
-            'jenis' => 'diet_rendah_kalori',
-            'deskripsi' => 'Rekomendasi untuk diet rendah kalori',
-            'metode_rekomendasi' => $metodeKaloriRendah,
-            'alasan' => "Metode {$metodeKaloriRendah} menghasilkan kalori terendah ({$minKalori} kkal) dibanding metode lain.",
-        ];
+        // Only add if metode found
+        if ($metodeKaloriRendah !== null) {
+            $recommendations[] = [
+                'jenis' => 'diet_rendah_kalori',
+                'deskripsi' => 'Rekomendasi untuk diet rendah kalori',
+                'metode_rekomendasi' => $metodeKaloriRendah,
+                'alasan' => "Metode {$metodeKaloriRendah} menghasilkan kalori terendah (" . number_format($minKalori, 2) . " kkal) dibanding metode lain.",
+            ];
+        }
 
         // 2. Rekomendasi untuk maksimalkan vitamin
-        $maxVitaminC = -PHP_INT_MAX;
+        $maxVitaminC = -PHP_FLOAT_MAX; // FIXED: Use FLOAT_MAX
         $metodeVitaminTerbaik = null;
+
         foreach ($hasilKomparasi as $metode => $data) {
             $vitaminCChange = $data['perubahan_persen']['vitamin_c'] ?? -100;
             if ($vitaminCChange > $maxVitaminC) {
@@ -236,16 +253,20 @@ class AnalisisController extends Controller
             }
         }
 
-        $recommendations[] = [
-            'jenis' => 'maksimal_vitamin',
-            'deskripsi' => 'Rekomendasi untuk mempertahankan vitamin',
-            'metode_rekomendasi' => $metodeVitaminTerbaik,
-            'alasan' => "Metode {$metodeVitaminTerbaik} mempertahankan vitamin C terbaik dengan hanya kehilangan " . abs($maxVitaminC) . "%.",
-        ];
+        // Only add if metode found
+        if ($metodeVitaminTerbaik !== null) {
+            $recommendations[] = [
+                'jenis' => 'maksimal_vitamin',
+                'deskripsi' => 'Rekomendasi untuk mempertahankan vitamin',
+                'metode_rekomendasi' => $metodeVitaminTerbaik,
+                'alasan' => "Metode {$metodeVitaminTerbaik} mempertahankan vitamin C terbaik dengan hanya kehilangan " . abs($maxVitaminC) . "%.",
+            ];
+        }
 
         // 3. Rekomendasi metode yang sebaiknya dihindari
-        $maxKaloriIncrease = -PHP_INT_MAX;
+        $maxKaloriIncrease = -PHP_FLOAT_MAX; // FIXED: Use FLOAT_MAX
         $metodeHindari = null;
+
         foreach ($hasilKomparasi as $metode => $data) {
             $kaloriChange = $data['perubahan_persen']['kalori'] ?? 0;
             if ($kaloriChange > $maxKaloriIncrease) {
@@ -254,14 +275,17 @@ class AnalisisController extends Controller
             }
         }
 
-        $recommendations[] = [
-            'jenis' => 'hindari',
-            'deskripsi' => 'Metode yang sebaiknya dihindari untuk diet',
-            'metode_rekomendasi' => $metodeHindari,
-            'alasan' => "Metode {$metodeHindari} meningkatkan kalori hingga {$maxKaloriIncrease}%, tidak cocok untuk diet rendah kalori.",
-        ];
+        // Only add if metode found
+        if ($metodeHindari !== null) {
+            $recommendations[] = [
+                'jenis' => 'hindari',
+                'deskripsi' => 'Metode yang sebaiknya dihindari untuk diet',
+                'metode_rekomendasi' => $metodeHindari,
+                'alasan' => "Metode {$metodeHindari} meningkatkan kalori hingga {$maxKaloriIncrease}%, tidak cocok untuk diet rendah kalori.",
+            ];
+        }
 
-        // Save recommendations
+        // Save recommendations only if we have any
         foreach ($recommendations as $rec) {
             Rekomendasi::create([
                 'analisis_nutrisi_id' => $analisis->id,

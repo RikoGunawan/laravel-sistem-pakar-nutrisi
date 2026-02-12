@@ -17,14 +17,14 @@
         background: white;
         padding: 25px;
         border-radius: 12px;
-        border-left: 4px solid #667eea;
+        border-left: 4px solid #ff7518;
         margin-bottom: 20px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
 
     .trace-step-number {
         display: inline-block;
-        background: #667eea;
+        background: #ff7518;
         color: white;
         width: 35px;
         height: 35px;
@@ -36,7 +36,7 @@
     }
 
     .trace-step h3 {
-        color: #667eea;
+        color: #ff7518;
         margin-bottom: 15px;
         display: flex;
         align-items: center;
@@ -56,10 +56,10 @@
 
     .trace-code {
         background: #f8f9fa;
-        padding: 10px;
+        padding: 6px;
         border-radius: 6px;
         font-family: monospace;
-        margin-top: 10px;
+        margin-top: 6px;
         overflow-x: auto;
     }
 
@@ -82,7 +82,7 @@
 @section('content')
     <div class="card">
         <div class="trace-header">
-            <h1>📋 Trace Penalaran Forward Chaining</h1>
+            <h1>Trace Penalaran Forward Chaining</h1>
             <p>Makanan: {{ $analisis->makanan->name }}</p>
         </div>
 
@@ -98,16 +98,16 @@
                     Step {{ $trace->step_order }}
                 </h3>
                 <div class="trace-content">
-                    <div class="trace-label">📍 Fakta Awal:</div>
+                    <div class="trace-label"> Fakta Awal:</div>
                     <div class="trace-code">{{ $trace->fakta_awal }}</div>
 
-                    <div class="trace-label">📜 Rule Digunakan:</div>
+                    <div class="trace-label"> Rule Digunakan:</div>
                     <div class="trace-code">{{ $trace->rule_used }}</div>
 
-                    <div class="trace-label">⚙️ Proses:</div>
+                    <div class="trace-label"> Proses:</div>
                     <div class="trace-code">{{ $trace->proses }}</div>
 
-                    <div class="trace-label">✨ Fakta Baru (Hasil):</div>
+                    <div class="trace-label"> Fakta Baru (Hasil):</div>
                     <div class="trace-code">{{ $trace->fakta_baru }}</div>
                 </div>
             </div>

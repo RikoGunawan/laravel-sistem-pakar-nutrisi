@@ -87,30 +87,27 @@
 
 @section('content')
     <div class="hero">
-        <h1>🍽️ Sistem Pakar Analisis Nutrisi Makanan</h1>
+        <h1>Sistem Pakar Analisis Nutrisi Makanan</h1>
         <p>Ketahui bagaimana metode pengolahan mengubah kandungan nutrisi makanan Indonesia</p>
         <a href="{{ route('analisis.index') }}" class="btn btn-primary">Mulai Analisis</a>
     </div>
 
     <div class="stats">
         <div class="stat-card">
-            <div class="stat-icon">🥘</div>
             <div class="stat-number">{{ $stats['total_makanan'] }}</div>
             <div class="stat-label">Jenis Makanan</div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon">📊</div>
             <div class="stat-number">{{ $stats['total_kategori'] }}</div>
             <div class="stat-label">Kategori</div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon">🔬</div>
             <div class="stat-number">5</div>
             <div class="stat-label">Metode Pengolahan</div>
         </div>
     </div>
 
-    <h2 style="text-align: center; margin-bottom: 30px;">📚 Informasi Gizi Terkini</h2>
+    <h2 style="text-align: center; margin-bottom: 30px;">Informasi Gizi Terkini</h2>
 
     <div class="info-grid">
         @foreach($informasiGizi as $info)

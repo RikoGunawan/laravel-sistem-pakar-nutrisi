@@ -1,3 +1,4 @@
+
 @extends('layouts.app')
 
 @section('title', 'Daftar Makanan')
@@ -47,30 +48,63 @@
 
     .food-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
         gap: 20px;
     }
 
     .food-card {
         background: white;
         border-radius: 12px;
-        padding: 20px;
-        text-align: center;
+        overflow: hidden;
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         transition: all 0.3s;
         text-decoration: none;
         color: inherit;
-        display: block;
+        display: flex;
+        flex-direction: column;
     }
 
     .food-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        transform: translateY(-8px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
     }
 
-    .food-icon {
-        font-size: 3em;
-        margin-bottom: 15px;
+    /* IMAGE CONTAINER */
+    .food-image-container {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        overflow: hidden;
+        background: #f8f9fa;
+        position: relative;
+    }
+
+    .food-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s;
+    }
+
+    .food-card:hover .food-image {
+        transform: scale(1.1);
+    }
+
+    .food-image-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 5em;
+        background: linear-gradient(135deg, #ffa500 0%, #ff7518 100%);
+    }
+
+    /* CARD CONTENT */
+    .food-card-content {
+        padding: 20px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
     }
 
     .food-name {
@@ -83,29 +117,50 @@
     .food-category {
         display: inline-block;
         padding: 5px 15px;
-        background: #667eea;
+        background: #ff7518;
         color: white;
         border-radius: 15px;
-        font-size: 0.9em;
-        margin-bottom: 10px;
+        font-size: 0.85em;
+        margin-bottom: 12px;
+        align-self: flex-start;
     }
 
     .food-nutrisi {
         font-size: 0.9em;
         color: #666;
-        margin-top: 10px;
+        margin-top: auto;
+        padding-top: 10px;
+        border-top: 1px solid #e0e0e0;
+    }
+
+    .food-nutrisi-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+    }
+
+    @media (max-width: 768px) {
+        .food-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .food-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 @endsection
 
 @section('content')
     <div class="card">
-        <h1 style="color: #667eea; margin-bottom: 20px;">🍽️ Daftar Makanan</h1>
+        <h1 style="color: #000000; margin-bottom: 20px;"> Daftar Makanan</h1>
 
         <form action="{{ route('makanan.index') }}" method="GET">
             <div class="search-bar">
                 <input type="text" name="search" class="search-input" placeholder="Cari makanan..." value="{{ request('search') }}">
-                <button type="submit" class="btn btn-primary">🔍 Cari</button>
+                <button type="submit" class="btn btn-primary">Cari</button>
             </div>
 
             <div class="filter-section">
@@ -140,12 +195,32 @@
     <div class="food-grid">
         @forelse($makananList as $makanan)
             <a href="{{ route('makanan.show', $makanan->id) }}" class="food-card">
-                <div class="food-icon">{{ $makanan->image }}</div>
-                <div class="food-name">{{ $makanan->name }}</div>
-                <div class="food-category">{{ $makanan->kategori }}</div>
-                <div class="food-nutrisi">
-                    <strong>Protein:</strong> {{ $makanan->protein }}g<br>
-                    <strong>Kalori:</strong> {{ $makanan->kalori }} kkal
+                <div class="food-image-container">
+                    @if($makanan->image && filter_var($makanan->image, FILTER_VALIDATE_URL))
+                        <img src="{{ $makanan->image }}" alt="{{ $makanan->name }}" class="food-image">
+                    @elseif($makanan->image && strlen($makanan->image) > 10)
+                        {{-- Jika image adalah path lokal --}}
+                        <img src="{{ asset('storage/' . $makanan->image) }}" alt="{{ $makanan->name }}" class="food-image">
+                    @else
+                        {{-- Fallback ke emoji --}}
+                        <div class="food-image-placeholder">{{ $makanan->image ?: '🍽️' }}</div>
+                    @endif
+                </div>
+
+                <div class="food-card-content">
+                    <h3 class="food-name">{{ $makanan->name }}</h3>
+                    <span class="food-category">{{ $makanan->kategori }}</span>
+
+                    <div class="food-nutrisi">
+                        <div class="food-nutrisi-item">
+                            <span><strong>Protein</strong></span>
+                            <span>{{ $makanan->protein }}g</span>
+                        </div>
+                        <div class="food-nutrisi-item">
+                            <span><strong>Kalori</strong></span>
+                            <span>{{ $makanan->kalori }} kkal</span>
+                        </div>
+                    </div>
                 </div>
             </a>
         @empty

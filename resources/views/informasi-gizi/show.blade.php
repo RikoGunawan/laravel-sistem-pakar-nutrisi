@@ -54,6 +54,41 @@
         margin-bottom: 30px;
     }
 
+    /* FOOTNOTE SECTION */
+    .footnote-section {
+        background: #fff9e6;
+        border: 2px solid #ffc107;
+        border-radius: 12px;
+        padding: 25px;
+        margin-top: 30px;
+        margin-bottom: 30px;
+    }
+
+    .footnote-title {
+        font-size: 1.1em;
+        font-weight: 600;
+        color: #856404;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .footnote-content {
+        color: #856404;
+        line-height: 1.6;
+    }
+
+    .footnote-content a {
+        color: #667eea;
+        text-decoration: underline;
+        word-break: break-all;
+    }
+
+    .footnote-content a:hover {
+        color: #764ba2;
+    }
+
     .back-btn-container {
         text-align: center;
         margin-top: 30px;
@@ -82,6 +117,10 @@
             width: 100%;
             justify-content: center;
         }
+
+        .footnote-section {
+            padding: 15px;
+        }
     }
 </style>
 @endsection
@@ -97,12 +136,6 @@
                     <span>📂</span>
                     <span>{{ ucfirst($informasi->kategori) }}</span>
                 </span>
-                @if($informasi->sumber)
-                    <span class="meta-item">
-                        <span>📖</span>
-                        <span>{{ $informasi->sumber }}</span>
-                    </span>
-                @endif
                 <span class="meta-item">
                     <span>📅</span>
                     <span>{{ $informasi->created_at->format('d M Y') }}</span>
@@ -113,6 +146,32 @@
         <div class="content-box">
             {!! nl2br(e($informasi->konten)) !!}
         </div>
+
+        @if($informasi->sumber)
+            <div class="footnote-section">
+                <div class="footnote-title">
+                    <span>📚</span>
+                    <span>Sumber Referensi</span>
+                </div>
+                <div class="footnote-content">
+                    @php
+                        // Check if sumber contains URL
+                        $sources = explode(',', $informasi->sumber);
+                    @endphp
+
+                    @foreach($sources as $index => $source)
+                        <p style="margin-bottom: 8px;">
+                            [{{ $index + 1 }}]
+                            @if(filter_var(trim($source), FILTER_VALIDATE_URL))
+                                <a href="{{ trim($source) }}" target="_blank" rel="noopener">{{ trim($source) }}</a>
+                            @else
+                                {{ trim($source) }}
+                            @endif
+                        </p>
+                    @endforeach
+                </div>
+            </div>
+        @endif
 
         <div class="back-btn-container">
             <a href="{{ route('informasi-gizi.index') }}" class="btn btn-secondary">← Kembali ke Daftar</a>

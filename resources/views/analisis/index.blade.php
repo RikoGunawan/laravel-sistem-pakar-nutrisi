@@ -7,8 +7,9 @@
     .help-btn {
         display: inline-block;
         padding: 10px 20px;
-        background: #ffc107;
-        color: #333;
+        background: linear-gradient(135deg, #ffa500 0%, #ff7518 100%);
+        /* ffc107 */
+        color: #ffffff;
         border-radius: 8px;
         text-decoration: none;
         font-weight: 600;
@@ -17,8 +18,9 @@
     }
 
     .help-btn:hover {
-        background: #e0a800;
+        /* background: #e0a800; */
         transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 117, 24, 0.4);
     }
 
     .form-section {
@@ -68,12 +70,12 @@
     }
 
     .method-card:hover {
-        border-color: #667eea;
+        border-color: #ff7518;
         transform: scale(1.05);
     }
 
     .method-card.selected {
-        border-color: #667eea;
+        border-color: #ff7518;
         background: #f0f3ff;
     }
 
@@ -112,11 +114,11 @@
         padding: 20px;
         background: white;
         border-radius: 8px;
-        border: 2px solid #667eea;
+        border: 2px solid #ff7518;
     }
 
     .selected-methods h4 {
-        color: #667eea;
+        color: #ff7518;
         margin-bottom: 15px;
     }
 
@@ -148,7 +150,7 @@
     .analyze-btn {
         width: 100%;
         padding: 18px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #ff7518 0%, #764ba2 100%);
         color: white;
         border: none;
         border-radius: 12px;
@@ -232,7 +234,7 @@
 
 @section('content')
     <div class="card">
-        <h1 style="color: #000000; margin-bottom: 15px;">🔬 Analisis Nutrisi Makanan</h1>
+        <h1 style="color: #000000; margin-bottom: 15px;">Analisis Nutrisi Makanan</h1>
         <p style="color: #666; margin-bottom: 25px;">Bandingkan perubahan nutrisi berdasarkan metode pengolahan yang berbeda</p>
 
         <a href="#" class="help-btn" onclick="showHelp(); return false;">❓ Tutorial Cara Analisis</a>
@@ -273,7 +275,7 @@
                 </div>
 
                 <button type="submit" class="analyze-btn" id="analyzeBtn" disabled>
-                    🔬 Analisis & Bandingkan
+                    Analisis & Bandingkan
                 </button>
             </div>
         </form>
@@ -282,7 +284,7 @@
     <!-- Help Modal -->
     <div class="help-modal" id="helpModal">
         <div class="help-content">
-            <h3>📖 Cara Menggunakan Analisis Nutrisi</h3>
+            <h3>Cara Menggunakan Analisis Nutrisi</h3>
             <ol>
                 <li><strong>Pilih Makanan</strong> yang ingin Anda analisis dari dropdown</li>
                 <li><strong>Pilih Metode Pengolahan</strong> dengan klik card metode. Anda bisa pilih lebih dari satu untuk membandingkan</li>

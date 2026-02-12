@@ -16,7 +16,7 @@ class MakananSeeder extends Seeder
                 'name' => 'Ayam',
                 'kategori' => 'Protein',
                 'description' => 'Daging ayam segar, sumber protein tinggi',
-                'image' => '🍗',
+                'image' => 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=400&h=400&fit=crop',
                 'sumber_data' => 'TKPI 2020',
                 'protein' => 25.00,
                 'lemak' => 5.00,
@@ -38,7 +38,7 @@ class MakananSeeder extends Seeder
                 'name' => 'Daging Sapi',
                 'kategori' => 'Protein',
                 'description' => 'Daging sapi segar, kaya zat besi',
-                'image' => '🥩',
+                'image' => 'https://images.unsplash.com/photo-1603048588665-791ca8aea617?w=400&h=400&fit=crop',
                 'sumber_data' => 'TKPI 2020',
                 'protein' => 26.00,
                 'lemak' => 15.00,
@@ -60,7 +60,7 @@ class MakananSeeder extends Seeder
                 'name' => 'Ikan',
                 'kategori' => 'Protein',
                 'description' => 'Ikan segar, sumber omega-3',
-                'image' => '🐟',
+                'image' => 'https://images.unsplash.com/photo-1574781330855-d0db8cc6a79c?w=400&h=400&fit=crop',
                 'sumber_data' => 'TKPI 2020',
                 'protein' => 20.00,
                 'lemak' => 3.00,
@@ -84,7 +84,7 @@ class MakananSeeder extends Seeder
                 'name' => 'Brokoli',
                 'kategori' => 'Sayuran',
                 'description' => 'Sayuran hijau kaya vitamin C dan serat',
-                'image' => '🥦',
+                'image' => 'https://images.unsplash.com/photo-1628773822503-930a7eaecf80?w=400&h=400&fit=crop',
                 'sumber_data' => 'USDA',
                 'protein' => 2.80,
                 'lemak' => 0.40,
@@ -106,7 +106,7 @@ class MakananSeeder extends Seeder
                 'name' => 'Wortel',
                 'kategori' => 'Sayuran',
                 'description' => 'Sayuran orange kaya vitamin A',
-                'image' => '🥕',
+                'image' => 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400&h=400&fit=crop',
                 'sumber_data' => 'TKPI 2020',
                 'protein' => 1.00,
                 'lemak' => 0.20,
@@ -128,7 +128,7 @@ class MakananSeeder extends Seeder
                 'name' => 'Bayam',
                 'kategori' => 'Sayuran',
                 'description' => 'Sayuran hijau kaya zat besi',
-                'image' => '🥬',
+                'image' => 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400&h=400&fit=crop',
                 'sumber_data' => 'TKPI 2020',
                 'protein' => 2.90,
                 'lemak' => 0.40,
@@ -152,7 +152,7 @@ class MakananSeeder extends Seeder
                 'name' => 'Nasi Putih',
                 'kategori' => 'Karbohidrat',
                 'description' => 'Nasi putih matang, makanan pokok Indonesia',
-                'image' => '🍚',
+                'image' => 'https://images.unsplash.com/photo-1516684732162-798a0062be99?w=400&h=400&fit=crop',
                 'sumber_data' => 'TKPI 2020',
                 'protein' => 2.70,
                 'lemak' => 0.30,
@@ -174,7 +174,7 @@ class MakananSeeder extends Seeder
                 'name' => 'Kentang',
                 'kategori' => 'Karbohidrat',
                 'description' => 'Umbi-umbian sumber karbohidrat kompleks',
-                'image' => '🥔',
+                'image' => 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&h=400&fit=crop',
                 'sumber_data' => 'USDA',
                 'protein' => 2.00,
                 'lemak' => 0.10,
@@ -198,6 +198,6 @@ class MakananSeeder extends Seeder
             Makanan::create($data);
         }
 
-        $this->command->info('✓ Berhasil menambahkan ' . count($makananData) . ' data makanan');
+        $this->command->info('✓ Berhasil menambahkan ' . count($makananData) . ' data makanan dengan gambar');
     }
 }
