@@ -210,7 +210,6 @@
                             'karbohidrat' => 'Karbohidrat (g)',
                             'kalori' => 'Kalori (kkal)',
                             'vitamin_c' => 'Vitamin C (mg)',
-                            'vitamin_b_complex' => 'Vitamin B (avg)',
                         ];
                     @endphp
 

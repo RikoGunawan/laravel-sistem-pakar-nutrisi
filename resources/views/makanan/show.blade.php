@@ -11,8 +11,8 @@
 
     /* IMAGE SECTION */
     .detail-image-container {
-        width: 300px;
-        height: 300px;
+        width: 200px;
+        height: 200px;
         margin: 0 auto 20px;
         border-radius: 20px;
         overflow: hidden;
@@ -31,23 +31,23 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 8em;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-size: 5em;
+        background: linear-gradient(135deg, #ff724c 0%, #ff5c33 100%);
     }
 
     .detail-name {
-        font-size: 2.5em;
-        color: #667eea;
+        font-size: 1.75em;
+        color: #ff724c;
         margin-bottom: 10px;
     }
 
     .detail-category {
         display: inline-block;
-        padding: 8px 20px;
-        background: #667eea;
+        padding: 6px 16px;
+        background: #ff724c;
         color: white;
-        border-radius: 20px;
-        font-size: 1.1em;
+        border-radius: 16px;
+        font-size: 0.9em;
     }
 
     .detail-description {
@@ -68,7 +68,7 @@
         background: #f8f9fa;
         padding: 20px;
         border-radius: 8px;
-        border-left: 4px solid #667eea;
+        border-left: 4px solid #ff724c;
     }
 
     .nutrisi-label {
@@ -78,7 +78,7 @@
     }
 
     .nutrisi-value {
-        font-size: 1.8em;
+        font-size: 1.4em;
         font-weight: bold;
         color: #333;
     }
@@ -90,8 +90,8 @@
 
     /* FOOTNOTE SECTION */
     .footnote-section {
-        background: #e7f3ff;
-        border: 2px solid #667eea;
+        background: #fff4e7;
+        border: 2px solid #ff724c;
         border-radius: 12px;
         padding: 20px;
         margin-top: 30px;
@@ -101,7 +101,7 @@
     .footnote-title {
         font-size: 1em;
         font-weight: 600;
-        color: #667eea;
+        color: #ff724c;
         margin-bottom: 10px;
         display: flex;
         align-items: center;
@@ -168,7 +168,7 @@
             <p class="detail-description">{{ $makanan->description }}</p>
         @endif
 
-        <h2 style="color: #667eea; margin: 30px 0 20px 0;">📊 Nutrisi per 100 gram (Mentah)</h2>
+        <h3 style="color: #ff724c; margin: 30px 0 20px 0;">Nutrisi per 100 gram</h3>
 
         <div class="nutrisi-grid">
             <div class="nutrisi-card">
@@ -187,19 +187,10 @@
                 <div class="nutrisi-label">Kalori</div>
                 <div class="nutrisi-value">{{ $makanan->kalori }} <span class="nutrisi-unit">kkal</span></div>
             </div>
-            <div class="nutrisi-card">
-                <div class="nutrisi-label">Vitamin C</div>
-                <div class="nutrisi-value">{{ $makanan->vitamin_c }} <span class="nutrisi-unit">mg</span></div>
-            </div>
-            <div class="nutrisi-card">
-                <div class="nutrisi-label">Serat</div>
-                <div class="nutrisi-value">{{ $makanan->serat }} <span class="nutrisi-unit">g</span></div>
-            </div>
         </div>
 
         <div class="footnote-section">
             <div class="footnote-title">
-                <span>ℹ️</span>
                 <span>Sumber Data</span>
             </div>
             <div class="footnote-content">

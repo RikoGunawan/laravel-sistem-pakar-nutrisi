@@ -249,7 +249,7 @@
                         <option value="">-- Pilih Makanan --</option>
                         @foreach($makananList as $makanan)
                             <option value="{{ $makanan->id }}" {{ request('makanan') == $makanan->id ? 'selected' : '' }}>
-                                {{ $makanan->image }} {{ $makanan->name }} ({{ $makanan->kategori }})
+                                {{ $makanan->name }} ({{ $makanan->kategori }})
                             </option>
                         @endforeach
                     </select>

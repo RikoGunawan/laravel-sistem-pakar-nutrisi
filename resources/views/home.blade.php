@@ -4,6 +4,9 @@
 
 @section('styles')
 <style>
+    body {
+            background: url('{{ asset('images/home.jpg') }}') no-repeat center/cover fixed !important;
+        }
     .hero {
         background: white;
         border-radius: 12px;
@@ -107,7 +110,7 @@
         </div>
     </div>
 
-    <h2 style="text-align: center; margin-bottom: 30px;">Informasi Gizi Terkini</h2>
+    <h2 style="text-align: center; color: #ffffff; margin-bottom: 30px;">Informasi Gizi Terkini</h2>
 
     <div class="info-grid">
         @foreach($informasiGizi as $info)

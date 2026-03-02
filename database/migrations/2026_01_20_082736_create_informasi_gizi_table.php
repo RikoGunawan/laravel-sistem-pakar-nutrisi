@@ -14,10 +14,11 @@ return new class extends Migration
         Schema::create('informasi_gizi', function (Blueprint $table) {
             $table->id();
             $table->string('judul');
-            $table->string('kategori'); // tips, fakta, panduan
+            $table->string('kategori'); // tips, fakta
             $table->text('konten');
             $table->string('icon')->nullable();
-            $table->string('sumber')->nullable(); // Sumber informasi
+            $table->string('image')->nullable();
+            $table->string('sumber')->nullable(); 
             $table->boolean('is_published')->default(true);
             $table->timestamps();
         });
