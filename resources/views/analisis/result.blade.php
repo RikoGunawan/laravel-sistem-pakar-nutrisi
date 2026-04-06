@@ -54,95 +54,199 @@
 
         .badge {
             display: inline-block;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.85em;
-            font-weight: 600;
+            /* padding: 4px 10px;
+                border-radius: 12px;
+                font-size: 0.85em;
+                font-weight: 600; */
             margin-left: 8px;
-        }
-
-        .badge-danger {
-            background: #dc3545;
-            color: white;
+            border-radius: 9999px;
+            padding: 0.35em 0.75em;
+            font-weight: 500;
+            font-size: 0.825rem;
         }
 
         .badge-success {
-            background: #28a745;
-            color: white;
+            background: #059669 !important;
+            color: white !important;
         }
 
         .badge-warning {
-            background: #ffc107;
-            color: #333;
+            background: #f59e0b !important;
+            color: white !important;
         }
 
+        .badge-danger {
+            background: #dc2626 !important;
+            color: white !important;
+        }
+
+
+        /* Grid untuk card summary - responsif */
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            /* lebih lebar biar nyaman */
+            gap: 1.5rem;
+            /* 24px */
+            margin-bottom: 2.5rem;
         }
 
+        /* Card utama - base style modern */
         .summary-card {
-            padding: 25px;
-            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            padding: 1.75rem;
+            /* 28px */
+            border-radius: 1rem;
+            /* rounded-4 */
             text-align: center;
+            background: var(--bs-body-bg);
+            /* putih di light, gelap di dark */
+            border: 1px solid var(--bs-border-color);
+            /* border tipis netral */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            /* shadow-sm modern */
+            transition: all 0.3s ease, transform 0.3s ease;
         }
 
-        .summary-card.best {
-            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-            border: 3px solid #28a745;
+        .summary-card:hover {
+            transform: translateY(-6px);
+            /* efek lift subtle */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            /* shadow-lg on hover */
         }
 
-        .summary-card.worst {
-            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-            border: 3px solid #dc3545;
+        /* Gradient overlay tipis (pakai pseudo-element biar mudah override) */
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.4;
+            /* sangat tipis */
+            transition: opacity 0.3s ease;
         }
 
-        .summary-card.neutral {
-            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-            border: 3px solid #ffc107;
+        .summary-card.best::before {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.08), rgba(60, 200, 90, 0.05));
         }
 
+        .summary-card.worst::before {
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.08), rgba(240, 80, 90, 0.05));
+        }
+
+        .summary-card.neutral::before {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.08), rgba(255, 210, 50, 0.05));
+        }
+
+        .summary-card:hover::before {
+            opacity: 0.6;
+            /* sedikit lebih terlihat saat hover */
+        }
+
+        /* Icon di card - kecil & di lingkaran */
         .summary-icon {
-            font-size: 3em;
-            margin-bottom: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 3.5rem;
+            height: 3.5rem;
+            margin-bottom: 1rem;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            /* lebih kecil dari 3em */
+            background: rgba(255, 255, 255, 0.8);
+            /* semi-transparan */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
+        /* Warna icon sesuai variant */
+        .summary-card.best .summary-icon {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .summary-card.worst .summary-icon {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .summary-card.neutral .summary-icon {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        /* Title & desc lebih clean */
         .summary-title {
-            font-size: 0.95em;
-            color: #666;
-            margin-bottom: 8px;
+            font-size: 0.875rem;
+            /* text-sm */
+            font-weight: 500;
+            color: var(--bs-secondary-color);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .summary-method {
-            font-size: 1.5em;
-            font-weight: bold;
-            margin-bottom: 8px;
+            font-size: 1.75rem;
+            /* lebih besar tapi tidak berlebihan */
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--bs-heading-color);
         }
 
         .summary-desc {
-            font-size: 0.9em;
-            color: #666;
+            font-size: 0.95rem;
+            color: var(--bs-body-color);
+            line-height: 1.5;
         }
 
+        /* Recommendation box - lebih modern */
         .recommendation-box {
-            background: #d4edda;
-            border-left: 4px solid #28a745;
-            padding: 25px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            background: var(--bs-success-bg-subtle);
+            /* #d1e7dd di Bootstrap 5 */
+            border: 1px solid var(--bs-success-border-subtle);
+            border-radius: 0.75rem;
+            padding: 1.75rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
 
         .recommendation-box h3 {
-            color: #155724;
-            margin-bottom: 15px;
+            color: var(--bs-success-text-emphasis);
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .recommendation-box h3::before {
+            content: "\F26F";
+            /* Bootstrap Icons: check-circle-fill, atau pakai <i class="bi bi-check-circle-fill"></i> di HTML */
+            font-family: "bootstrap-icons";
+            font-size: 1.4rem;
         }
 
         .recommendation-box ul {
-            margin-left: 20px;
-            line-height: 1.8;
-            color: #155724;
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+
+        .recommendation-box li {
+            margin-bottom: 0.75rem;
+            color: var(--bs-success-text-emphasis);
+            position: relative;
+            padding-left: 1.75rem;
+        }
+
+        .recommendation-box li::before {
+            content: "\2713";
+            /* checkmark sederhana, atau pakai Bootstrap icon */
+            position: absolute;
+            left: 0;
+            color: var(--bs-success);
         }
 
         .btn-group {
@@ -196,9 +300,9 @@
                 <thead>
                     <tr>
                         <th>Nutrisi</th>
-                        <th>🥩 Mentah</th>
+                        <th>Mentah</th>
                         @foreach ($analisis->analisisMetode as $am)
-                            <th>{{ $am->metodePengolahan->icon }} {{ $am->metodePengolahan->name }}</th>
+                            <th>{{ $am->metodePengolahan->name }}</th>
                         @endforeach
                     </tr>
                 </thead>
@@ -274,30 +378,30 @@
             @endphp
 
             <div class="summary-card best">
-                <div class="summary-icon">🏆</div>
-                <div class="summary-title">Terbaik untuk Nutrisi</div>
-                <div class="summary-method">{{ $metodeTerbaik->icon }} {{ $metodeTerbaik->name }}</div>
+                <div class="summary-icon"><i class="bi bi-award"></i></div>
+                <div class="summary-title">Terbaik Mempertahankan Nutrisi</div>
+                <div class="summary-method">{{ $metodeTerbaik->name }}</div>
                 <div class="summary-desc">Kehilangan vitamin hanya {{ $minVitaminLoss }}%</div>
             </div>
 
             <div class="summary-card worst">
-                <div class="summary-icon">⚠️</div>
-                <div class="summary-title">Paling Tinggi Kalori</div>
-                <div class="summary-method">{{ $metodeKaloriTinggi->icon }} {{ $metodeKaloriTinggi->name }}</div>
+                <div class="summary-icon"><i class="bi bi-exclamation-lg"></i></div>
+                <div class="summary-title">Kalori Tertinggi</div>
+                <div class="summary-method">{{ $metodeKaloriTinggi->name }}</div>
                 <div class="summary-desc">Kalori: {{ number_format($maxKalori, 0) }} kkal</div>
             </div>
 
             <div class="summary-card neutral">
-                <div class="summary-icon">💪</div>
+                <div class="summary-icon"><i class="bi bi-droplet text-muted me-1"></i></div>
                 <div class="summary-title">Rendah Lemak</div>
-                <div class="summary-method">{{ $metodeLemakRendah->icon }} {{ $metodeLemakRendah->name }}</div>
+                <div class="summary-method">{{ $metodeLemakRendah->name }}</div>
                 <div class="summary-desc">Lemak: {{ number_format($minLemak, 2) }}g</div>
             </div>
         </div>
 
         @if ($analisis->rekomendasi->count() > 0)
             <div class="recommendation-box">
-                <h3>✅ Rekomendasi Berdasarkan Tujuan</h3>
+                <h3>Rekomendasi Berdasarkan Tujuan</h3>
                 <ul>
                     @foreach ($analisis->rekomendasi as $rek)
                         <li><strong>{{ ucwords(str_replace('_', ' ', $rek->jenis)) }}:</strong> {{ $rek->alasan }}</li>
@@ -308,7 +412,7 @@
 
         <div class="btn-group">
             <a href="{{ route('analisis.index') }}" class="btn btn-secondary">← Analisis Lagi</a>
-            <a href="{{ route('analisis.trace', $analisis->id) }}" class="btn btn-primary">📋 Lihat Trace Penalaran</a>
+            <a href="{{ route('analisis.trace', $analisis->id) }}" class="btn btn-primary">Lihat Trace Penalaran</a>
         </div>
     </div>
 @endsection

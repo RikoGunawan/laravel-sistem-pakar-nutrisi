@@ -35,6 +35,28 @@ class AnalisisController extends Controller
             'metode_ids.*' => 'exists:metode_pengolahan,id',
         ]);
 
+        // VALIDASI BARU: Cek apakah metode cocok dengan makanan
+        $makanan = Makanan::findOrFail($request->makanan_id);
+        $metodeTidakCocok = [];
+
+        foreach ($request->metode_ids as $metodeId) {
+            if (!$makanan->isMetodeCocok($metodeId)) {
+                $metode = MetodePengolahan::find($metodeId);
+                $metodeTidakCocok[] = $metode->name;
+            }
+        }
+
+        // Jika ada metode yang tidak cocok, kembalikan error
+        if (!empty($metodeTidakCocok)) {
+            return back()->with(
+                'error',
+                "Metode " . implode(', ', $metodeTidakCocok) .
+                    " tidak cocok untuk " . $makanan->name . ". " .
+                    ($makanan->catatan_pengolahan ?: "Silakan pilih metode lain.")
+            );
+        }
+
+
         try {
             DB::beginTransaction();
 
@@ -109,7 +131,6 @@ class AnalisisController extends Controller
 
             return redirect()->route('analisis.result', $analisis->id)
                 ->with('success', 'Analisis berhasil dilakukan!');
-
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
@@ -137,7 +158,7 @@ class AnalisisController extends Controller
      */
     public function trace($id)
     {
-        $analisis = AnalisisNutrisi::with(['tracePenalaran' => function($query) {
+        $analisis = AnalisisNutrisi::with(['tracePenalaran' => function ($query) {
             $query->ordered();
         }])->findOrFail($id);
 

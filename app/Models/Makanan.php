@@ -17,6 +17,8 @@ class Makanan extends Model
         'description',
         'image',
         'sumber_data',
+        'metode_cocok',
+        'catatan_pengolahan',
         'protein',
         'lemak',
         'karbohidrat',
@@ -35,6 +37,7 @@ class Makanan extends Model
     ];
 
     protected $casts = [
+        'metode_cocok' => 'array',
         'protein' => 'decimal:2',
         'lemak' => 'decimal:2',
         'karbohidrat' => 'decimal:2',
@@ -89,5 +92,35 @@ class Makanan extends Model
     public function scopeSearch($query, $search)
     {
         return $query->where('name', 'like', '%' . $search . '%');
+    }
+
+    // TAMBAHAN: Method untuk cek apakah metode cocok
+    public function isMetodeCocok($metodeId)
+    {
+        if (empty($this->metode_cocok)) {
+            return true; // Jika tidak diisi, semua metode dianggap cocok
+        }
+        
+        return in_array($metodeId, $this->metode_cocok);
+    }
+
+    // TAMBAHAN: Get list metode yang TIDAK cocok
+    public function getMetodeTidakCocok()
+    {
+        if (empty($this->metode_cocok)) {
+            return [];
+        }
+
+        return \App\Models\MetodePengolahan::whereNotIn('id', $this->metode_cocok)->get();
+    }
+
+    // TAMBAHAN: Get list metode yang cocok
+    public function getMetodeCocokList()
+    {
+        if (empty($this->metode_cocok)) {
+            return \App\Models\MetodePengolahan::all();
+        }
+
+        return \App\Models\MetodePengolahan::whereIn('id', $this->metode_cocok)->get();
     }
 }
