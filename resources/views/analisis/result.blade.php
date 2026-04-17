@@ -286,6 +286,13 @@
     </style>
 @endsection
 
+@php
+    function cleanDecimal($value)
+    {
+        return $value !== null ? rtrim(rtrim(number_format($value, 4, '.', ''), '0'), '.') : '-';
+    }
+@endphp
+
 @section('content')
     <div class="card">
         <div class="result-header">
@@ -313,6 +320,11 @@
                             'lemak' => 'Lemak (g)',
                             'karbohidrat' => 'Karbohidrat (g)',
                             'kalori' => 'Kalori (kkal)',
+                            'vitamin_a' => 'Vitamin A (mcg)',
+                            'beta_karoten' => 'Beta Karoten (mcg)',
+                            'vitamin_b1' => 'Vitamin B1 (mg)',
+                            'vitamin_b2' => 'Vitamin B2 (mg)',
+                            'vitamin_b3' => 'Vitamin B3 (mg)',
                             'vitamin_c' => 'Vitamin C (mg)',
                         ];
                     @endphp
@@ -320,7 +332,8 @@
                     @foreach ($nutrisiLabels as $key => $label)
                         <tr>
                             <td><strong>{{ $label }}</strong></td>
-                            <td>{{ number_format($analisis->nutrisi_mentah[$key], 2) }}</td>
+                            <td>{{ cleanDecimal($analisis->nutrisi_mentah[$key]) }}</td>
+
                             @foreach ($analisis->analisisMetode as $am)
                                 @php
                                     $nilai = $am->nutrisi_hasil[$key];

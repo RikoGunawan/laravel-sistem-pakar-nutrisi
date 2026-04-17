@@ -12,20 +12,22 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('analisis_metode', function (Blueprint $table) {
-           $table->id();
+            $table->id();
             $table->foreignId('analisis_nutrisi_id')->constrained('analisis_nutrisi')->onDelete('cascade');
             $table->foreignId('metode_pengolahan_id')->constrained('metode_pengolahan')->onDelete('cascade');
-            $table->foreignId('rule_id')->constrained('rules')->onDelete('cascade');
+
+            //  UPDATE: Kolom rule_id (nullable)
+            $table->foreignId('rule_id')
+                ->nullable()
+                ->constrained('rules')
+                ->onDelete('set null');
 
             // Hasil perhitungan nutrisi setelah diolah
             $table->json('nutrisi_hasil');
-
-            // Persentase perubahan yang terjadi
             $table->json('perubahan_persen');
 
             $table->timestamps();
 
-            // Unique constraint
             $table->unique(['analisis_nutrisi_id', 'metode_pengolahan_id'], 'unique_analisis_metode');
         });
     }

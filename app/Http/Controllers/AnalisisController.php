@@ -9,137 +9,150 @@ use App\Models\AnalisisNutrisi;
 use App\Models\AnalisisMetode;
 use App\Models\TracePenalaran;
 use App\Models\Rekomendasi;
+use App\Services\RuleEngineService;
 use Illuminate\Support\Facades\DB;
 
 class AnalisisController extends Controller
 {
-    /**
-     * Show analisis form
-     */
+    // ====================== SHOW FORM ANALISIS ======================
     public function index()
     {
         $makananList = Makanan::orderBy('name', 'asc')->get();
-        $metodeList = MetodePengolahan::all();
+        $metodeList  = MetodePengolahan::all();
 
         return view('analisis.index', compact('makananList', 'metodeList'));
     }
 
-    /**
-     * Process analisis (Forward Chaining)
-     */
+    // ====================== PROSES ANALISIS (FORWARD CHAINING) ======================
     public function analyze(Request $request)
     {
         $request->validate([
-            'makanan_id' => 'required|exists:makanan,id',
-            'metode_ids' => 'required|array|min:1',
+            'makanan_id'   => 'required|exists:makanan,id',
+            'metode_ids'   => 'required|array|min:1',
             'metode_ids.*' => 'exists:metode_pengolahan,id',
         ]);
 
-        // VALIDASI BARU: Cek apakah metode cocok dengan makanan
         $makanan = Makanan::findOrFail($request->makanan_id);
-        $metodeTidakCocok = [];
 
-        foreach ($request->metode_ids as $metodeId) {
-            if (!$makanan->isMetodeCocok($metodeId)) {
-                $metode = MetodePengolahan::find($metodeId);
-                $metodeTidakCocok[] = $metode->name;
-            }
-        }
+        // Validasi: Cek apakah metode cocok dengan makanan
+        $metodeTidakCocok = $this->validasiMetodeCocok($makanan, $request->metode_ids);
 
-        // Jika ada metode yang tidak cocok, kembalikan error
         if (!empty($metodeTidakCocok)) {
-            return back()->with(
-                'error',
-                "Metode " . implode(', ', $metodeTidakCocok) .
-                    " tidak cocok untuk " . $makanan->name . ". " .
-                    ($makanan->catatan_pengolahan ?: "Silakan pilih metode lain.")
-            );
+            return back()->with('error', sprintf(
+                "Metode %s tidak cocok untuk %s. %s",
+                implode(', ', $metodeTidakCocok),
+                $makanan->name,
+                $makanan->catatan_pengolahan ?: "Silakan pilih metode lain."
+            ));
         }
-
 
         try {
             DB::beginTransaction();
 
-            // 1. Get makanan data
-            $makanan = Makanan::findOrFail($request->makanan_id);
             $nutrisiMentah = $makanan->getNutrisiMentah();
 
-            // 2. Create analisis record
+            // Buat record analisis utama
             $analisis = AnalisisNutrisi::create([
-                'makanan_id' => $makanan->id,
+                'makanan_id'     => $makanan->id,
                 'nutrisi_mentah' => $nutrisiMentah,
-                'session_id' => session()->getId(),
-                'ip_address' => $request->ip(),
+                'session_id'     => session()->getId(),
+                'ip_address'     => $request->ip(),
             ]);
 
-            // 3. Process each metode (Forward Chaining)
             $hasilKomparasi = [];
             $stepOrder = 1;
+            $ruleEngine = new RuleEngineService();
 
+            // Proses setiap metode pengolahan
             foreach ($request->metode_ids as $metodeId) {
                 $metode = MetodePengolahan::findOrFail($metodeId);
-                $rule = $metode->getRule();
 
-                if ($rule) {
-                    // Apply rule (Forward Chaining)
-                    $hasil = $rule->applyRule($nutrisiMentah);
+                // === BAGIAN BARU: Gunakan Rule Engine ===
+                $result = $ruleEngine->applyRules($makanan, $metodeId);
 
-                    // Save to analisis_metode
-                    $analisisMetode = AnalisisMetode::create([
-                        'analisis_nutrisi_id' => $analisis->id,
-                        'metode_pengolahan_id' => $metodeId,
-                        'rule_id' => $rule->id,
-                        'nutrisi_hasil' => $hasil['nutrisi_hasil'],
-                        'perubahan_persen' => $hasil['perubahan_persen'],
-                    ]);
+                if (empty($result['rules_diterapkan'])) {
+                    // Jika tidak ada rule sama sekali untuk metode ini
+                    continue;
+                }
 
-                    // Save trace penalaran
+                $nutrisiHasil = $result['nutrisi_akhir'];
+
+                // Simpan detail analisis metode (ambil rule pertama yang diterapkan sebagai representasi utama)
+                $ruleUtama = $result['rules_diterapkan'][0];
+
+                // Simpan ke AnalisisMetode
+                AnalisisMetode::create([
+                    'analisis_nutrisi_id'  => $analisis->id,
+                    'metode_pengolahan_id' => $metodeId,
+                    'rule_id'              => $ruleUtama['rule_id'] ?? null,
+                    'nutrisi_hasil'        => $nutrisiHasil,
+                    'perubahan_persen'     => $ruleUtama['perubahan'] ?? [],
+                ]);
+
+                // === TRACE PENALARAN FORWARD CHAINING (Per Rule) ===
+                $currentNutrisi = $nutrisiMentah;   // reset ke nutrisi mentah untuk setiap metode
+
+                foreach ($result['rules_diterapkan'] as $applied) {
                     TracePenalaran::create([
                         'analisis_nutrisi_id' => $analisis->id,
-                        'fakta_awal' => "Makanan: {$makanan->name}, Nutrisi Mentah: " . json_encode($nutrisiMentah),
-                        'rule_used' => $rule->kode_rule,
-                        'proses' => "Menerapkan rule {$rule->kode_rule}: {$rule->kondisi}. Perubahan: " . json_encode($rule->perubahan_nutrisi),
-                        'fakta_baru' => "Nutrisi setelah {$metode->name}: " . json_encode($hasil['nutrisi_hasil']),
-                        'step_order' => $stepOrder++,
+                        'fakta_awal'  => $currentNutrisi === $nutrisiMentah 
+                            ? "Fakta Awal → Makanan: {$makanan->name} | Kategori: " . ($makanan->kategori ?? '-') 
+                            : "Fakta sebelum rule ini → " . json_encode($currentNutrisi, JSON_PRETTY_PRINT),
+                        
+                        'rule_used'   => $applied['kode_rule'],
+                        'proses'      => "Menerapkan rule {$applied['kode_rule']} (Tipe: {$applied['tipe_rule']}) pada metode {$metode->name}" .
+                                         ($applied['penjelasan'] ? " | Alasan: {$applied['penjelasan']}" : ''),
+                        
+                        'fakta_baru'  => "Hasil setelah rule {$applied['kode_rule']}: " . json_encode($nutrisiHasil, JSON_PRETTY_PRINT),
+                        'step_order'  => $stepOrder++,
                     ]);
 
-                    // Collect hasil for comparison
-                    $hasilKomparasi[$metode->name] = [
-                        'metode_id' => $metodeId,
-                        'nutrisi_hasil' => $hasil['nutrisi_hasil'],
-                        'perubahan_persen' => $hasil['perubahan_persen'],
-                        'penjelasan' => $rule->penjelasan,
-                    ];
+                    // Update current nutrisi untuk rule berikutnya (chaining)
+                    $currentNutrisi = $nutrisiHasil;
+
                 }
+
+                // Kumpulkan hasil komparasi
+                $hasilKomparasi[$metode->name] = [
+                    'metode_id'        => $metodeId,
+                    'nutrisi_hasil'    => $nutrisiHasil,
+                    'perubahan_persen' => $ruleUtama['perubahan'] ?? [],
+                    'penjelasan'       => $ruleUtama['penjelasan'] ?? 'Rule umum diterapkan',
+                    'rules_diterapkan' => $result['rules_diterapkan'],
+                ];
             }
 
-            // 4. Generate summary & recommendations
-            $summary = $this->generateSummary($hasilKomparasi, $nutrisiMentah);
+            if (empty($hasilKomparasi)) {
+                throw new \Exception('Tidak ada hasil analisis yang berhasil diproses.');
+            }
+
+            // Tambahkan informasi tambahan (total vitamin + score) SEKALI SAJA
+            $hasilKomparasi = $this->enrichData($hasilKomparasi);
+            $summary       = $this->generateSummary($hasilKomparasi);
             $metodeTerbaik = $this->findBestMethod($hasilKomparasi);
 
-            // Update analisis
+            // Update record analisis
             $analisis->update([
                 'hasil_komparasi' => $hasilKomparasi,
-                'summary' => $summary,
-                'metode_terbaik' => $metodeTerbaik,
+                'summary'         => $summary,
+                'metode_terbaik'  => $metodeTerbaik,
             ]);
 
-            // 5. Generate recommendations
+            // Generate rekomendasi
             $this->generateRecommendations($analisis, $hasilKomparasi);
 
             DB::commit();
 
             return redirect()->route('analisis.result', $analisis->id)
                 ->with('success', 'Analisis berhasil dilakukan!');
+
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Show analysis result
-     */
+    // ====================== HALAMAN HASIL ======================
     public function result($id)
     {
         $analisis = AnalisisNutrisi::with([
@@ -153,9 +166,7 @@ class AnalisisController extends Controller
         return view('analisis.result', compact('analisis'));
     }
 
-    /**
-     * Show trace penalaran
-     */
+    // ====================== TRACE PENALARAN ======================
     public function trace($id)
     {
         $analisis = AnalisisNutrisi::with(['tracePenalaran' => function ($query) {
@@ -165,18 +176,52 @@ class AnalisisController extends Controller
         return view('analisis.trace', compact('analisis'));
     }
 
-    /**
-     * HELPER: Generate summary
-     */
-    private function generateSummary($hasilKomparasi, $nutrisiMentah)
+    // ====================== HELPER METHODS ======================
+
+    private function enrichData(array $hasilKomparasi): array
+    {
+        foreach ($hasilKomparasi as $metode => &$data) {
+            $nutrisi = $data['nutrisi_hasil'];
+
+            $data['total_vitamin'] = $this->hitungTotalVitamin($nutrisi);
+            $data['kalori']        = $nutrisi['kalori'] ?? 0;
+            $data['kalori_change'] = $data['perubahan_persen']['kalori'] ?? 0;
+            $data['lemak_change']  = $data['perubahan_persen']['lemak'] ?? 0;
+
+            // Score = Total vitamin - (kenaikan kalori & lemak)
+            $data['score'] = $data['total_vitamin']
+                - abs($data['kalori_change'])
+                - abs($data['lemak_change']);
+        }
+
+        return $hasilKomparasi;
+    }
+
+    private function hitungTotalVitamin(array $nutrisi): int|float
+    {
+        $vitamins = [
+            $nutrisi['vitamin_a']    ?? 0,
+            $nutrisi['beta_karoten'] ?? 0,
+            $nutrisi['vitamin_b1']   ?? 0,
+            $nutrisi['vitamin_b2']   ?? 0,
+            $nutrisi['vitamin_b3']   ?? 0,
+            $nutrisi['vitamin_b5']   ?? 0,
+            $nutrisi['vitamin_b6']   ?? 0,
+            $nutrisi['vitamin_b12']  ?? 0,
+            $nutrisi['vitamin_c']    ?? 0,
+        ];
+
+        return array_sum(array_filter($vitamins, fn($v) => $v !== null && $v !== 0));
+    }
+
+    private function generateSummary(array $hasilKomparasi): string
     {
         $summary = [
             'total_metode_dibandingkan' => count($hasilKomparasi),
-            'perubahan_tertinggi' => [],
-            'perubahan_terendah' => [],
+            'perubahan_tertinggi'       => [],
+            'perubahan_terendah'        => [],
         ];
 
-        // Find highest and lowest changes
         foreach (['protein', 'lemak', 'karbohidrat', 'kalori', 'vitamin_c'] as $nutrisi) {
             $changes = [];
             foreach ($hasilKomparasi as $metode => $data) {
@@ -195,126 +240,120 @@ class AnalisisController extends Controller
         return json_encode($summary);
     }
 
-    /**
-     * HELPER: Find best method (lowest calorie increase, highest vitamin retention)
-     */
-    private function findBestMethod($hasilKomparasi)
+    private function findBestMethod(array $hasilKomparasi): ?int
     {
         if (empty($hasilKomparasi)) {
             return null;
         }
 
-        $scores = [];
+        $bestMetode = null;
+        $maxScore   = -INF;
 
-        foreach ($hasilKomparasi as $metode => $data) {
-            $score = 0;
-
-            // Lower calorie increase = better
-            $kaloriChange = $data['perubahan_persen']['kalori'] ?? 0;
-            $score -= abs($kaloriChange);
-
-            // Lower fat increase = better
-            $lemakChange = $data['perubahan_persen']['lemak'] ?? 0;
-            $score -= abs($lemakChange);
-
-            // Higher vitamin retention = better
-            $vitaminCChange = $data['perubahan_persen']['vitamin_c'] ?? 0;
-            $score += (100 + $vitaminCChange); // Convert negative to positive score
-
-            $scores[$metode] = $score;
+        foreach ($hasilKomparasi as $data) {
+            if (isset($data['score']) && $data['score'] > $maxScore) {
+                $maxScore   = $data['score'];
+                $bestMetode = $data['metode_id'];
+            }
         }
 
-        arsort($scores);
-        return array_key_first($scores);
+        return $bestMetode;
     }
 
-    /**
-     * HELPER: Generate recommendations based on analysis
-     * FIXED: Prevent null metode_rekomendasi
-     */
-    private function generateRecommendations($analisis, $hasilKomparasi)
+    private function generateRecommendations(AnalisisNutrisi $analisis, array $hasilKomparasi): void
     {
-        // Check if empty
         if (empty($hasilKomparasi)) {
             return;
         }
 
         $recommendations = [];
 
-        // 1. Rekomendasi untuk diet rendah kalori
-        $minKalori = PHP_FLOAT_MAX; // FIXED: Use FLOAT_MAX instead of INT_MAX
+        // 1. Diet rendah kalori
         $metodeKaloriRendah = null;
+        $minKalori = PHP_FLOAT_MAX;
 
         foreach ($hasilKomparasi as $metode => $data) {
-            if (isset($data['nutrisi_hasil']['kalori']) && $data['nutrisi_hasil']['kalori'] < $minKalori) {
-                $minKalori = $data['nutrisi_hasil']['kalori'];
+            $kalori = $data['kalori'] ?? PHP_FLOAT_MAX;
+            if ($kalori < $minKalori) {
+                $minKalori = $kalori;
                 $metodeKaloriRendah = $metode;
             }
         }
 
-        // Only add if metode found
         if ($metodeKaloriRendah !== null) {
+            $kalori = $hasilKomparasi[$metodeKaloriRendah]['kalori'];
             $recommendations[] = [
-                'jenis' => 'diet_rendah_kalori',
-                'deskripsi' => 'Rekomendasi untuk diet rendah kalori',
+                'jenis'              => 'diet_rendah_kalori',
+                'deskripsi'          => 'Rekomendasi untuk diet rendah kalori',
                 'metode_rekomendasi' => $metodeKaloriRendah,
-                'alasan' => "Metode {$metodeKaloriRendah} menghasilkan kalori terendah (" . number_format($minKalori, 2) . " kkal) dibanding metode lain.",
+                'alasan'             => "Metode {$metodeKaloriRendah} menghasilkan kalori terendah (" .
+                    number_format($kalori, 2) . " kkal).",
             ];
         }
 
-        // 2. Rekomendasi untuk maksimalkan vitamin
-        $maxVitaminC = -PHP_FLOAT_MAX; // FIXED: Use FLOAT_MAX
+        // 2. Maksimalkan vitamin
         $metodeVitaminTerbaik = null;
+        $maxVitamin = -PHP_FLOAT_MAX;
 
         foreach ($hasilKomparasi as $metode => $data) {
-            $vitaminCChange = $data['perubahan_persen']['vitamin_c'] ?? -100;
-            if ($vitaminCChange > $maxVitaminC) {
-                $maxVitaminC = $vitaminCChange;
+            $totalVitamin = $data['total_vitamin'] ?? 0;
+            if ($totalVitamin > $maxVitamin) {
+                $maxVitamin = $totalVitamin;
                 $metodeVitaminTerbaik = $metode;
             }
         }
 
-        // Only add if metode found
         if ($metodeVitaminTerbaik !== null) {
             $recommendations[] = [
-                'jenis' => 'maksimal_vitamin',
-                'deskripsi' => 'Rekomendasi untuk mempertahankan vitamin',
+                'jenis'              => 'maksimal_vitamin',
+                'deskripsi'          => 'Rekomendasi untuk mempertahankan vitamin',
                 'metode_rekomendasi' => $metodeVitaminTerbaik,
-                'alasan' => "Metode {$metodeVitaminTerbaik} mempertahankan vitamin C terbaik dengan hanya kehilangan " . abs($maxVitaminC) . "%.",
+                'alasan'             => "Metode {$metodeVitaminTerbaik} memiliki total vitamin tertinggi.",
             ];
         }
 
-        // 3. Rekomendasi metode yang sebaiknya dihindari
-        $maxKaloriIncrease = -PHP_FLOAT_MAX; // FIXED: Use FLOAT_MAX
+        // 3. Metode yang sebaiknya dihindari
         $metodeHindari = null;
+        $maxKaloriIncrease = -PHP_FLOAT_MAX;
 
         foreach ($hasilKomparasi as $metode => $data) {
-            $kaloriChange = $data['perubahan_persen']['kalori'] ?? 0;
+            $kaloriChange = $data['kalori_change'] ?? 0;
             if ($kaloriChange > $maxKaloriIncrease) {
                 $maxKaloriIncrease = $kaloriChange;
                 $metodeHindari = $metode;
             }
         }
 
-        // Only add if metode found
-        if ($metodeHindari !== null) {
+        if ($metodeHindari !== null && $maxKaloriIncrease > 0) {
             $recommendations[] = [
-                'jenis' => 'hindari',
-                'deskripsi' => 'Metode yang sebaiknya dihindari untuk diet',
+                'jenis'              => 'hindari',
+                'deskripsi'          => 'Metode yang sebaiknya dihindari untuk diet',
                 'metode_rekomendasi' => $metodeHindari,
-                'alasan' => "Metode {$metodeHindari} meningkatkan kalori hingga {$maxKaloriIncrease}%, tidak cocok untuk diet rendah kalori.",
+                'alasan'             => "Metode {$metodeHindari} meningkatkan kalori hingga {$maxKaloriIncrease}%.",
             ];
         }
 
-        // Save recommendations only if we have any
+        // Simpan semua rekomendasi ke database
         foreach ($recommendations as $rec) {
             Rekomendasi::create([
                 'analisis_nutrisi_id' => $analisis->id,
-                'jenis' => $rec['jenis'],
-                'deskripsi' => $rec['deskripsi'],
-                'metode_rekomendasi' => $rec['metode_rekomendasi'],
-                'alasan' => $rec['alasan'],
+                'jenis'               => $rec['jenis'],
+                'deskripsi'           => $rec['deskripsi'],
+                'metode_rekomendasi'  => $rec['metode_rekomendasi'],
+                'alasan'              => $rec['alasan'],
             ]);
         }
+    }
+
+    // ====================== VALIDASI HELPER ======================
+    private function validasiMetodeCocok(Makanan $makanan, array $metodeIds): array
+    {
+        $tidakCocok = [];
+        foreach ($metodeIds as $id) {
+            if (!$makanan->isMetodeCocok($id)) {
+                $metode = MetodePengolahan::find($id);
+                $tidakCocok[] = $metode?->name ?? "ID: {$id}";
+            }
+        }
+        return $tidakCocok;
     }
 }

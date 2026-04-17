@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Makanan extends Model
 {
@@ -26,6 +27,7 @@ class Makanan extends Model
         'serat',
         'gula',
         'vitamin_a',
+        'beta_karoten',
         'vitamin_b1',
         'vitamin_b2',
         'vitamin_b3',
@@ -36,24 +38,31 @@ class Makanan extends Model
         'natrium',
     ];
 
-    protected $casts = [
-        'metode_cocok' => 'array',
-        'protein' => 'decimal:2',
-        'lemak' => 'decimal:2',
-        'karbohidrat' => 'decimal:2',
-        'kalori' => 'decimal:2',
-        'serat' => 'decimal:2',
-        'gula' => 'decimal:2',
-        'vitamin_a' => 'decimal:2',
-        'vitamin_b1' => 'decimal:2',
-        'vitamin_b2' => 'decimal:2',
-        'vitamin_b3' => 'decimal:2',
-        'vitamin_b5' => 'decimal:2',
-        'vitamin_b6' => 'decimal:2',
-        'vitamin_b12' => 'decimal:2',
-        'vitamin_c' => 'decimal:2',
-        'natrium' => 'decimal:2',
-    ];
+    protected function casts(): array   // Laravel 11 style (bisa juga pakai protected $casts = [])
+    {
+        return [
+            'metode_cocok' => 'array',
+
+            'protein'     => 'decimal:2',
+            'lemak'       => 'decimal:2',
+            'karbohidrat' => 'decimal:2',
+            'kalori'      => 'decimal:0',
+            'serat'       => 'decimal:3',
+            'gula'        => 'decimal:3',
+
+            'vitamin_a'   => 'decimal:3',
+            'beta_karoten' => 'decimal:2',
+            'vitamin_b1'  => 'decimal:4',
+            'vitamin_b2'  => 'decimal:4',
+            'vitamin_b3'  => 'decimal:3',
+            'vitamin_b5'  => 'decimal:3',
+            'vitamin_b6'  => 'decimal:3',
+            'vitamin_b12' => 'decimal:4',
+            'vitamin_c'   => 'decimal:3',
+
+            'natrium'     => 'decimal:2',
+        ];
+    }
 
     // Relationships
     public function analisisNutrisi()
@@ -62,18 +71,27 @@ class Makanan extends Model
     }
 
     // Helper Methods
-    public function getNutrisiMentah()
+    public function getNutrisiMentah(): array
     {
         return [
-            'protein' => $this->protein,
-            'lemak' => $this->lemak,
-            'karbohidrat' => $this->karbohidrat,
-            'kalori' => $this->kalori,
-            'vitamin_c' => $this->vitamin_c,
-            'vitamin_b_complex' => ($this->vitamin_b1 + $this->vitamin_b2 + $this->vitamin_b3) / 3,
+            'protein'      => round((float) $this->protein, 2),
+            'lemak'        => round((float) $this->lemak, 2),
+            'karbohidrat'  => round((float) $this->karbohidrat, 2),
+
+            // Khusus kalori: tidak boleh ada koma sama sekali
+            'kalori'       => (int) round((float) $this->kalori ?? 0),
+
+            'vitamin_a'    => round((float) $this->vitamin_a, 3),
+            'beta_karoten' => round((float) $this->beta_karoten, 2),
+            'vitamin_c'    => round((float) $this->vitamin_c, 3),
+            'vitamin_b1'   => round((float) $this->vitamin_b1, 4),
+            'vitamin_b2'   => round((float) $this->vitamin_b2, 4),
+            'vitamin_b3'   => round((float) $this->vitamin_b3, 3),
+            'vitamin_b5'   => round((float) $this->vitamin_b5, 3),
+            'vitamin_b6'   => round((float) $this->vitamin_b6, 3),
+            'vitamin_b12'  => round((float) $this->vitamin_b12, 4),
         ];
     }
-
     public function getDetailNutrisi()
     {
         return [
@@ -83,7 +101,6 @@ class Makanan extends Model
         ];
     }
 
-    // Scope untuk filter
     public function scopeByKategori($query, $kategori)
     {
         return $query->where('kategori', $kategori);
@@ -100,7 +117,7 @@ class Makanan extends Model
         if (empty($this->metode_cocok)) {
             return true; // Jika tidak diisi, semua metode dianggap cocok
         }
-        
+
         return in_array($metodeId, $this->metode_cocok);
     }
 

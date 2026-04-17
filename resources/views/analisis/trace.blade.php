@@ -3,80 +3,80 @@
 @section('title', 'Trace Penalaran')
 
 @section('styles')
-<style>
-    .trace-header {
-        background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
-        color: white;
-        padding: 30px;
-        border-radius: 12px;
-        margin-bottom: 30px;
-        text-align: center;
-    }
-
-    .trace-step {
-        background: white;
-        padding: 25px;
-        border-radius: 12px;
-        border-left: 4px solid #ff7518;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-
-    .trace-step-number {
-        display: inline-block;
-        background: #ff7518;
-        color: white;
-        width: 35px;
-        height: 35px;
-        border-radius: 50%;
-        text-align: center;
-        line-height: 35px;
-        font-weight: bold;
-        margin-right: 10px;
-    }
-
-    .trace-step h3 {
-        color: #ff7518;
-        margin-bottom: 15px;
-        display: flex;
-        align-items: center;
-    }
-
-    .trace-content {
-        margin-left: 45px;
-        line-height: 1.8;
-        color: #666;
-    }
-
-    .trace-label {
-        font-weight: 600;
-        color: #333;
-        margin-top: 10px;
-    }
-
-    .trace-code {
-        background: #f8f9fa;
-        padding: 6px;
-        border-radius: 6px;
-        font-family: monospace;
-        margin-top: 6px;
-        overflow-x: auto;
-    }
-
-    @media (max-width: 768px) {
+    <style>
         .trace-header {
-            padding: 20px;
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
         }
 
         .trace-step {
-            padding: 15px;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 4px solid #ff7518;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .trace-step-number {
+            display: inline-block;
+            background: #ff7518;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 35px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .trace-step h3 {
+            color: #ff7518;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
         }
 
         .trace-content {
-            margin-left: 0;
+            margin-left: 45px;
+            line-height: 1.8;
+            color: #666;
         }
-    }
-</style>
+
+        .trace-label {
+            font-weight: 600;
+            color: #333;
+            margin-top: 10px;
+        }
+
+        .trace-code {
+            background: #f8f9fa;
+            padding: 6px;
+            border-radius: 6px;
+            font-family: monospace;
+            margin-top: 6px;
+            overflow-x: auto;
+        }
+
+        @media (max-width: 768px) {
+            .trace-header {
+                padding: 20px;
+            }
+
+            .trace-step {
+                padding: 15px;
+            }
+
+            .trace-content {
+                margin-left: 0;
+            }
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -91,24 +91,36 @@
             (nutrisi mentah) dan menerapkan aturan (rules) untuk menghasilkan kesimpulan baru (nutrisi setelah diolah).
         </p>
 
-        @foreach($analisis->tracePenalaran as $trace)
+        @foreach ($analisis->tracePenalaran as $trace)
             <div class="trace-step">
                 <h3>
                     <span class="trace-step-number">{{ $trace->step_order }}</span>
                     Step {{ $trace->step_order }}
                 </h3>
+
                 <div class="trace-content">
-                    <div class="trace-label"> Fakta Awal:</div>
-                    <div class="trace-code">{{ $trace->fakta_awal }}</div>
+                    <div class="trace-label">Fakta Saat Ini</div>
+                    <pre class="trace-code">{{ $trace->fakta_awal }}</pre>
 
-                    <div class="trace-label"> Rule Digunakan:</div>
-                    <div class="trace-code">{{ $trace->rule_used }}</div>
+                    <div class="trace-label">Rule yang Diaktifkan</div>
+                    <div class="trace-code">
+                        <strong>{{ $trace->rule_used }}</strong>
+                        <span class="badge">
+                            @if (str_contains($trace->proses, 'spesifik_makanan'))
+                                Spesifik Makanan
+                            @elseif(str_contains($trace->proses, 'kategori'))
+                                Berdasarkan Kategori
+                            @else
+                                Rule Umum
+                            @endif
+                        </span>
+                    </div>
 
-                    <div class="trace-label"> Proses:</div>
+                    <div class="trace-label">Proses Penalaran</div>
                     <div class="trace-code">{{ $trace->proses }}</div>
 
-                    <div class="trace-label"> Fakta Baru (Hasil):</div>
-                    <div class="trace-code">{{ $trace->fakta_baru }}</div>
+                    <div class="trace-label">Fakta Baru setelah Rule Ini</div>
+                    <pre class="trace-code">{{ $trace->fakta_baru }}</pre>
                 </div>
             </div>
         @endforeach

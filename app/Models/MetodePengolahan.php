@@ -29,8 +29,8 @@ class MetodePengolahan extends Model
     }
 
     // Helper method untuk get rule
-    public function getRule()
-    {
-        return $this->rules()->first();
-    }
+    // public function getRule()
+    // {
+    //     return $this->rules()->first();
+    // }
 }
