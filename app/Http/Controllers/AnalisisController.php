@@ -95,21 +95,20 @@ class AnalisisController extends Controller
                 foreach ($result['rules_diterapkan'] as $applied) {
                     TracePenalaran::create([
                         'analisis_nutrisi_id' => $analisis->id,
-                        'fakta_awal'  => $currentNutrisi === $nutrisiMentah 
-                            ? "Fakta Awal → Makanan: {$makanan->name} | Kategori: " . ($makanan->kategori ?? '-') 
+                        'fakta_awal'  => $currentNutrisi === $nutrisiMentah
+                            ? "Fakta Awal → Makanan: {$makanan->name} | Kategori: " . ($makanan->kategori ?? '-')
                             : "Fakta sebelum rule ini → " . json_encode($currentNutrisi, JSON_PRETTY_PRINT),
-                        
+
                         'rule_used'   => $applied['kode_rule'],
                         'proses'      => "Menerapkan rule {$applied['kode_rule']} (Tipe: {$applied['tipe_rule']}) pada metode {$metode->name}" .
-                                         ($applied['penjelasan'] ? " | Alasan: {$applied['penjelasan']}" : ''),
-                        
+                            ($applied['penjelasan'] ? " | Alasan: {$applied['penjelasan']}" : ''),
+
                         'fakta_baru'  => "Hasil setelah rule {$applied['kode_rule']}: " . json_encode($nutrisiHasil, JSON_PRETTY_PRINT),
                         'step_order'  => $stepOrder++,
                     ]);
 
                     // Update current nutrisi untuk rule berikutnya (chaining)
                     $currentNutrisi = $nutrisiHasil;
-
                 }
 
                 // Kumpulkan hasil komparasi
@@ -145,14 +144,13 @@ class AnalisisController extends Controller
 
             return redirect()->route('analisis.result', $analisis->id)
                 ->with('success', 'Analisis berhasil dilakukan!');
-
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
-    // ====================== HALAMAN HASIL ======================
+    // ====================== HALAMAN RESULT ======================
     public function result($id)
     {
         $analisis = AnalisisNutrisi::with([
@@ -163,7 +161,21 @@ class AnalisisController extends Controller
             'rekomendasi'
         ])->findOrFail($id);
 
-        return view('analisis.result', compact('analisis'));
+        // Kumpulkan SEMUA rules_diterapkan dari semua metode (supaya footnote bisa ambil semua sumber)
+        $rulesDiterapkanSemua = collect();
+
+        foreach ($analisis->analisisMetode as $am) {
+            if ($am->rule) {
+                $rulesDiterapkanSemua->push([
+                    'rule'          => $am->rule,
+                    'kode_rule'     => $am->rule->kode_rule,
+                    'penjelasan'    => $am->rule->penjelasan,
+                    'perubahan'     => $am->perubahan_persen ?? [],
+                ]);
+            }
+        }
+
+        return view('analisis.result', compact('analisis', 'rulesDiterapkanSemua'));
     }
 
     // ====================== TRACE PENALARAN ======================

@@ -91,28 +91,23 @@
             margin-top: 30px;
         }
 
-        /* ── Perbaikan gambar kiri + border putih aman ── */
+        /* MAIN CARD CONTENT */
         .main-card-content {
             display: flex;
             gap: 30px;
             align-items: stretch;
             min-height: 500px;
-            /* sesuaikan kalau konten pendek */
         }
 
         .left-image-wrapper {
             flex: 0 0 40%;
             position: relative;
-            /* Hapus overflow: hidden di sini biar border kelihatan */
         }
 
         .side-image-frame {
             height: 100%;
-            /* ikut tinggi full konten */
             border: 12px solid white;
-            /* tebalin sedikit biar lebih kelihatan */
             border-radius: 16px;
-            /* sedikit lebih rounded biar bagus */
             overflow: hidden;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
             background: white;
@@ -132,7 +127,7 @@
             flex-direction: column;
         }
 
-        /* Mobile tetap sama */
+        /* MOBILE RESPONSIVE */
         @media (max-width: 992px) {
             .main-card-content {
                 flex-direction: column;
@@ -146,13 +141,11 @@
                 width: 100%;
                 max-width: 500px;
                 height: 380px;
-                /* atau sesuaikan */
             }
 
             .side-image-frame {
                 height: 100%;
                 border: 10px solid white;
-                /* sedikit lebih tipis di mobile */
                 border-radius: 14px;
             }
         }
@@ -243,7 +236,6 @@
             </div>
         </div>
 
-        <!-- Bagian bawah tetap full width seperti semula -->
         <div class="back-btn-container">
             <a href="{{ route('informasi-gizi.index') }}" class="btn btn-secondary">← Kembali ke Daftar</a>
         </div>

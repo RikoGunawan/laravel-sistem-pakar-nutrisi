@@ -37,6 +37,7 @@ class RuleEngineService
                     'penjelasan'    => $rule->penjelasan,
                     'prioritas'     => $rule->prioritas,
                     'tipe_rule'     => $this->getRuleType($rule),
+                    'rule'          => $rule,
                 ];
             }
         }

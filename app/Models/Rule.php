@@ -63,11 +63,13 @@ class Rule extends Model
         // Level 3: Rule umum (hanya metode)
         return true;
     }
-    // Helper method untuk apply rule
+
     public function applyRule($nutrisiMentah)
     {
         $nutrisiHasil = [];
         $perubahanPersen = $this->perubahan_nutrisi;
+
+        $makronutrien = ['karbohidrat', 'protein', 'lemak'];
 
         foreach ($nutrisiMentah as $key => $nilai) {
             if ($nilai === null) {
@@ -77,7 +79,27 @@ class Rule extends Model
 
             if (isset($perubahanPersen[$key]) && is_numeric($nilai)) {
                 $perubahan = $perubahanPersen[$key];
-                $nutrisiHasil[$key] = $nilai * (1 + ($perubahan / 100));
+
+                // MAKRONUTRIEN
+                if (in_array(strtolower($key), $makronutrien)) {
+                    // Untuk kasus khusus: Karbo ayam = 0 karena tepung dia jadi 19 g naik ga bisa pakai %
+                    if ($nilai == 0) {
+                        $nilai = 0.1;
+                        $nutrisiHasil[$key] = max(0, $nilai * ($perubahan / 100));
+                    } else {
+                        $nutrisiHasil[$key] = max(0, $nilai + ($nilai * ($perubahan / 100)));
+                    }
+                } elseif ($key === 'kalori' && $perubahan == 0) {
+                    // Rumus 4-4-9, pakai nilai hasil makronutrien yang sudah dihitung
+                    $nutrisiHasil[$key] =
+                        (($nutrisiHasil['protein'] ?? 0) * 4) +
+                        (($nutrisiHasil['karbohidrat'] ?? 0) * 4) +
+                        (($nutrisiHasil['lemak'] ?? 0) * 9);
+                }
+                // MIKRONUTRIEN
+                else {
+                    $nutrisiHasil[$key] = max(0, $nilai * (1 + ($perubahan / 100)));
+                }
             } else {
                 $nutrisiHasil[$key] = $nilai;
             }

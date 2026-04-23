@@ -44,6 +44,8 @@
             border-bottom: 1px solid #e0e0e0;
         }
 
+        /* .comparison-table td:not(:first-child) { text-align: right; } */
+
         .comparison-table tr:hover {
             background: #f8f9fa;
         }
@@ -54,10 +56,6 @@
 
         .badge {
             display: inline-block;
-            /* padding: 4px 10px;
-                border-radius: 12px;
-                font-size: 0.85em;
-                font-weight: 600; */
             margin-left: 8px;
             border-radius: 9999px;
             padding: 0.35em 0.75em;
@@ -81,49 +79,38 @@
         }
 
 
-        /* Grid untuk card summary - responsif */
+        /* SUMMARY */
         .summary-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            /* lebih lebar biar nyaman */
             gap: 1.5rem;
-            /* 24px */
             margin-bottom: 2.5rem;
         }
 
-        /* Card utama - base style modern */
         .summary-card {
             position: relative;
             overflow: hidden;
             padding: 1.75rem;
-            /* 28px */
             border-radius: 1rem;
-            /* rounded-4 */
             text-align: center;
             background: var(--bs-body-bg);
             /* putih di light, gelap di dark */
             border: 1px solid var(--bs-border-color);
-            /* border tipis netral */
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            /* shadow-sm modern */
             transition: all 0.3s ease, transform 0.3s ease;
         }
 
         .summary-card:hover {
             transform: translateY(-6px);
-            /* efek lift subtle */
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            /* shadow-lg on hover */
         }
 
-        /* Gradient overlay tipis (pakai pseudo-element biar mudah override) */
         .summary-card::before {
             content: '';
             position: absolute;
             inset: 0;
             pointer-events: none;
             opacity: 0.4;
-            /* sangat tipis */
             transition: opacity 0.3s ease;
         }
 
@@ -141,10 +128,8 @@
 
         .summary-card:hover::before {
             opacity: 0.6;
-            /* sedikit lebih terlihat saat hover */
         }
 
-        /* Icon di card - kecil & di lingkaran */
         .summary-icon {
             display: inline-flex;
             align-items: center;
@@ -154,13 +139,10 @@
             margin-bottom: 1rem;
             border-radius: 50%;
             font-size: 1.5rem;
-            /* lebih kecil dari 3em */
             background: rgba(255, 255, 255, 0.8);
-            /* semi-transparan */
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
-        /* Warna icon sesuai variant */
         .summary-card.best .summary-icon {
             background: #d4edda;
             color: #155724;
@@ -176,10 +158,8 @@
             color: #856404;
         }
 
-        /* Title & desc lebih clean */
         .summary-title {
             font-size: 0.875rem;
-            /* text-sm */
             font-weight: 500;
             color: var(--bs-secondary-color);
             margin-bottom: 0.5rem;
@@ -189,7 +169,6 @@
 
         .summary-method {
             font-size: 1.75rem;
-            /* lebih besar tapi tidak berlebihan */
             font-weight: 700;
             margin-bottom: 0.5rem;
             color: var(--bs-heading-color);
@@ -201,10 +180,9 @@
             line-height: 1.5;
         }
 
-        /* Recommendation box - lebih modern */
+        /* RECOMMENDATION */
         .recommendation-box {
             background: var(--bs-success-bg-subtle);
-            /* #d1e7dd di Bootstrap 5 */
             border: 1px solid var(--bs-success-border-subtle);
             border-radius: 0.75rem;
             padding: 1.75rem;
@@ -223,7 +201,6 @@
 
         .recommendation-box h3::before {
             content: "\F26F";
-            /* Bootstrap Icons: check-circle-fill, atau pakai <i class="bi bi-check-circle-fill"></i> di HTML */
             font-family: "bootstrap-icons";
             font-size: 1.4rem;
         }
@@ -243,10 +220,40 @@
 
         .recommendation-box li::before {
             content: "\2713";
-            /* checkmark sederhana, atau pakai Bootstrap icon */
             position: absolute;
             left: 0;
             color: var(--bs-success);
+        }
+
+        .footnote-section {
+            padding: 25px;
+            margin-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .footnote-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #000;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footnote-content {
+            color: #000;
+            line-height: 1.6;
+        }
+
+        .footnote-content a {
+            color: #000;
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        .footnote-content a:hover {
+            color: #ffca28;
         }
 
         .btn-group {
@@ -286,13 +293,6 @@
     </style>
 @endsection
 
-@php
-    function cleanDecimal($value)
-    {
-        return $value !== null ? rtrim(rtrim(number_format($value, 4, '.', ''), '0'), '.') : '-';
-    }
-@endphp
-
 @section('content')
     <div class="card">
         <div class="result-header">
@@ -320,13 +320,19 @@
                             'lemak' => 'Lemak (g)',
                             'karbohidrat' => 'Karbohidrat (g)',
                             'kalori' => 'Kalori (kkal)',
-                            'vitamin_a' => 'Vitamin A (mcg)',
-                            'beta_karoten' => 'Beta Karoten (mcg)',
-                            'vitamin_b1' => 'Vitamin B1 (mg)',
-                            'vitamin_b2' => 'Vitamin B2 (mg)',
-                            'vitamin_b3' => 'Vitamin B3 (mg)',
+                            'vitamin_a' => 'Vitamin A (Retinol)(µg)',
+                            'beta_karoten' => 'Beta-Karoten (µg)',
+                            'vitamin_b1' => 'Vitamin B1 (Thiamin)(mg)',
+                            'vitamin_b2' => 'Vitamin B2 (Riboflavin)(mg)',
+                            'vitamin_b3' => 'Vitamin B3 (Niacin)(mg)',
                             'vitamin_c' => 'Vitamin C (mg)',
                         ];
+
+                        $nutrisiLowerIsBetter = ['lemak', 'kalori', 'karbohidrat'];
+
+                        //BADGE THRESHOLD
+                        $thresholdSignifikan = 20;
+
                     @endphp
 
                     @foreach ($nutrisiLabels as $key => $label)
@@ -337,19 +343,46 @@
                             @foreach ($analisis->analisisMetode as $am)
                                 @php
                                     $nilai = $am->nutrisi_hasil[$key];
-                                    $perubahan = $am->perubahan_persen[$key] ?? 0;
-                                    $badgeClass =
-                                        $perubahan > 0
-                                            ? 'badge-danger'
-                                            : ($perubahan < 0
-                                                ? 'badge-warning'
-                                                : 'badge-success');
-                                    $icon = $perubahan > 0 ? '↑' : ($perubahan < 0 ? '↓' : '→');
+                                    $perubahan = $am->perubahan_persen[$key] ?? null;
+                                    $isLowerBetter = in_array($key, $nutrisiLowerIsBetter);
+
+                                    if ($perubahan === null) {
+                                        $badgeClass = 'badge-warning';
+                                        $icon = '!';
+                                        $labelPersen = '';
+                                    } elseif ($perubahan == 0) {
+                                        $badgeClass = 'badge-success';
+                                        $icon = '→';
+                                        $labelPersen = '0%';
+                                    } elseif ($perubahan > 0) {
+                                        $icon = '↑';
+                                        $labelPersen = '+' . round($perubahan) . '%';
+                                        if ($isLowerBetter) {
+                                            $badgeClass =
+                                                abs($perubahan) <= $thresholdSignifikan
+                                                    ? 'badge-warning'
+                                                    : 'badge-danger';
+                                        } else {
+                                            $badgeClass = 'badge-success';
+                                        }
+                                    } else {
+                                        $icon = '↓';
+                                        $labelPersen = round($perubahan) . '%';
+                                        if ($isLowerBetter) {
+                                            $badgeClass = 'badge-success';
+                                        } else {
+                                            $badgeClass =
+                                                abs($perubahan) <= $thresholdSignifikan
+                                                    ? 'badge-warning'
+                                                    : 'badge-danger';
+                                        }
+                                    }
                                 @endphp
+
                                 <td>
-                                    {{ number_format($nilai, 2) }}
+                                    {{ cleanDecimal($nilai, $key) }}
                                     <span class="badge {{ $badgeClass }}">
-                                        {{ $icon }} {{ $perubahan > 0 ? '+' : '' }}{{ $perubahan }}%
+                                        {{ $icon }} {{ abs($perubahan ?? 0) < 10000 ? $labelPersen : '' }}
                                     </span>
                                 </td>
                             @endforeach
@@ -426,6 +459,96 @@
         <div class="btn-group">
             <a href="{{ route('analisis.index') }}" class="btn btn-secondary">← Analisis Lagi</a>
             <a href="{{ route('analisis.trace', $analisis->id) }}" class="btn btn-primary">Lihat Trace Penalaran</a>
+        </div>
+
+        {{-- ==================== SUMBER REFERENSI PER METODE ==================== --}}
+        <div class="footnote-section mt-8">
+            <div class="footnote-title">
+                <span>Sumber Referensi</span>
+            </div>
+            <div class="footnote-content space-y-8">
+
+                @foreach ($analisis->analisisMetode as $am)
+                    @php
+                        $metodeName = $am->metodePengolahan->name ?? 'Metode';
+                        $rule = $am->rule;
+                        $sources = collect();
+
+                        if ($rule && $rule->sumber_referensi) {
+                            $list = preg_split('/[\r\n,]+/', $rule->sumber_referensi);
+                            foreach ($list as $item) {
+                                $trimmed = trim($item);
+                                if ($trimmed !== '') {
+                                    $sources->push($trimmed);
+                                }
+                            }
+                        }
+                    @endphp
+
+                    <div class="border-l-4 border-orange-400 pl-5">
+                        <h4 class="font-semibold text-lg text-gray-800 mb-3">
+                            {{ $metodeName }}
+                        </h4>
+
+                        <div class="space-y-3 pl-2">
+                            {{-- [1] Makronutrien & Kalori --}}
+                            <p>
+                                [1] Perubahan Nilai Makronutrien & Kalori →
+                                @if ($sources->isNotEmpty())
+                                    @if (filter_var($sources[0], FILTER_VALIDATE_URL))
+                                        <a href="{{ $sources[0] }}" target="_blank" rel="noopener noreferrer"
+                                            class="text-blue-600 hover:underline">
+                                            {{ $sources[0] }}
+                                        </a>
+                                    @else
+                                        {{ $sources[0] }}
+                                    @endif
+                                @else
+                                    Bognar Food Composition Database
+                                @endif
+                            </p>
+
+                            {{-- [2] Semua Vitamin --}}
+                            <p>
+                                [2] Perubahan Nilai Semua Vitamin →
+                                @if ($sources->count() >= 2)
+                                    @if (filter_var($sources[1], FILTER_VALIDATE_URL))
+                                        <a href="{{ $sources[1] }}" target="_blank" rel="noopener noreferrer"
+                                            class="text-blue-600 hover:underline">
+                                            {{ $sources[1] }}
+                                        </a>
+                                    @else
+                                        {{ $sources[1] }}
+                                    @endif
+                                @else
+                                    USDA Table of Nutrient Retention Factors Release 6
+                                @endif
+                            </p>
+
+                            {{-- [3] Penjelasan --}}
+                            <p>
+                                [3] Penjelasan (Kok Bisa?) →
+                                @if ($sources->count() >= 3)
+                                    @if (filter_var($sources[2], FILTER_VALIDATE_URL))
+                                        <a href="{{ $sources[2] }}" target="_blank" rel="noopener noreferrer"
+                                            class="text-blue-600 hover:underline">
+                                            {{ $sources[2] }}
+                                        </a>
+                                    @else
+                                        {{ $sources[2] }}
+                                    @endif
+                                @else
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+                @endforeach
+
+                @if ($analisis->analisisMetode->isEmpty())
+                    <p class="text-gray-500 italic">Tidak ada sumber referensi yang tersedia untuk analisis ini.</p>
+                @endif
+
+            </div>
         </div>
     </div>
 @endsection
