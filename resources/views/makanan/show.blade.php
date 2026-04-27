@@ -123,13 +123,6 @@
     </style>
 @endsection
 
-@php
-    function cleanDecimal($value)
-    {
-        return $value !== null ? rtrim(rtrim(number_format($value, 4, '.', ''), '0'), '.') : '-';
-    }
-@endphp
-
 @section('content')
     <div class="detail-page">
 

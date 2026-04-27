@@ -238,7 +238,8 @@
         <p style="color: #666; margin-bottom: 25px;">Bandingkan perubahan nutrisi berdasarkan metode pengolahan yang berbeda
         </p>
 
-        <a href="#" class="help-btn" onclick="showHelp(); return false;"><i class="bi bi-question-lg"></i> Tutorial Cara Analisis</a>
+        <a href="#" class="help-btn" onclick="showHelp(); return false;"><i class="bi bi-question-lg"></i> Tutorial Cara
+            Analisis</a>
 
         <form action="{{ route('analisis.analyze') }}" method="POST" id="analisisForm">
             @csrf
@@ -260,7 +261,12 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">2. Pilih Metode Pengolahan (Minimal 1, bisa lebih)</label>
+                    <label class="form-label">2. Pilih Metode Pengolahan (Minimal 1, bisa lebih)
+                        <a href="#" onclick="showMetodeInfo(); return false;"
+                            style="font-size: 0.9em; color: #ff7518; font-weight: 500;">
+                            <i class="bi bi-info-circle"></i> Apa itu masing-masing metode?
+                        </a>
+                    </label>
                     <div class="method-grid">
                         @foreach ($metodeList as $metode)
                             <label for="metode_{{ $metode->id }}" class="method-card"
@@ -295,197 +301,228 @@
     <!-- Help Modal -->
     <div class="help-modal" id="helpModal">
         <div class="help-content">
-            <h3>Cara Menggunakan Analisis Nutrisi</h3>
+            <h3>Cara Melakukan Analisis Nutrisi</h3>
             <ol>
-                <li><strong>Pilih Makanan</strong> yang ingin Anda analisis dari dropdown</li>
+                <li><strong>Pilih Makanan</strong> yang ingin Anda analisis dari dropdown.</li>
                 <li><strong>Pilih Metode Pengolahan</strong> dengan klik card metode. Anda bisa pilih lebih dari satu untuk
-                    membandingkan</li>
-                <li>Metode yang terpilih akan ditandai dengan ✓ hijau</li>
-                <li>Klik tombol <strong>"Analisis & Bandingkan"</strong> untuk melihat hasil</li>
-                <li>Anda akan melihat tabel komparasi nutrisi antar metode</li>
-                <li>Sistem akan memberikan rekomendasi metode terbaik</li>
+                    membandingkan.</li>
+                <li>Metode yang terpilih akan ditandai dengan ✓ hijau.</li>
+                <li>Klik tombol <strong>"Analisis & Bandingkan"</strong> untuk melihat hasil.</li>
+                <li>Anda akan melihat tabel komparasi nutrisi antar metode.</li>
+                <li>Sistem akan memberikan rekomendasi metode terbaik.</li>
             </ol>
             <button onclick="closeHelp()" class="btn btn-primary" style="margin-top: 20px;">Mengerti</button>
+        </div>
+    </div>
+    <!-- Modal Info Metode -->
+    <div class="help-modal" id="metodeModal">
+        <div class="help-content">
+            <h3>Penjelasan Metode Pengolahan</h3>
+            <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 10px;">
+                @foreach ($metodeList as $metode)
+                    @php
+                        $parts = explode(';', $metode->description ?? '');
+                        $subtitle = trim($parts[0] ?? '');
+                        $deskripsi = trim($parts[1] ?? '');
+                    @endphp
+                    <div
+                        style="border-left: 4px solid #ff7518; padding: 12px 16px; background: #f8f9fa; border-radius: 0 8px 8px 0;">
+                        <div style="font-weight: 700; font-size: 1em; margin-bottom: 4px;">
+                            {{ $metode->name }}{{ $subtitle ? ' / ' . $subtitle : '' }}
+                        </div>
+                        <div style="color: #555; font-size: 0.95em; line-height: 1.6;">
+                            {{ $deskripsi ?: 'Belum ada deskripsi.' }}
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+            <button onclick="closeMetodeInfo()" class="btn btn-primary" style="margin-top: 20px;">Tutup</button>
         </div>
     </div>
 @endsection
 
 @section('scripts')
     <script>
-    const makananSelect     = document.getElementById('makananSelect');
-    const catatanBox        = document.getElementById('catatanBox');
-    const catatanText       = document.getElementById('catatanText');
-    const methodCards       = document.querySelectorAll('.method-card');
-    const selectedMethodsDiv = document.getElementById('selectedMethods');
-    const selectedMethodsList = document.getElementById('selectedMethodsList');
-    const analyzeBtn        = document.getElementById('analyzeBtn');
+        const makananSelect = document.getElementById('makananSelect');
+        const catatanBox = document.getElementById('catatanBox');
+        const catatanText = document.getElementById('catatanText');
+        const methodCards = document.querySelectorAll('.method-card');
+        const selectedMethodsDiv = document.getElementById('selectedMethods');
+        const selectedMethodsList = document.getElementById('selectedMethodsList');
+        const analyzeBtn = document.getElementById('analyzeBtn');
 
-    let selectedMethods = [];  // array untuk menyimpan metode yang dipilih {id, name}
+        let selectedMethods = []; // array untuk menyimpan metode yang dipilih {id, name}
 
-    // ====================
-    // Saat pilih makanan dari dropdown
-    // ====================
-    makananSelect.addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        const metodeCocok = JSON.parse(selectedOption.dataset.metodeCocok || '[]');
-        const catatan = selectedOption.dataset.catatan || '';
+        // ====================
+        // Saat pilih makanan dari dropdown
+        // ====================
+        makananSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const metodeCocok = JSON.parse(selectedOption.dataset.metodeCocok || '[]');
+            const catatan = selectedOption.dataset.catatan || '';
 
-        // Reset semua checkbox dan visual card
-        document.querySelectorAll('.method-checkbox').forEach(cb => cb.checked = false);
-        methodCards.forEach(card => {
-            card.classList.remove('selected', 'disabled');
-            card.style.opacity = '1';
-            card.style.pointerEvents = 'auto';
-            card.querySelector('input').disabled = false;
-        });
-
-        selectedMethods = [];           // penting: reset daftar metode terpilih
-        updateSelectedList();
-        updateAnalyzeButton();
-
-        // Jika ada batasan metode cocok
-        if (metodeCocok.length > 0) {
+            // Reset semua checkbox dan visual card
+            document.querySelectorAll('.method-checkbox').forEach(cb => cb.checked = false);
             methodCards.forEach(card => {
-                const metodeId = parseInt(card.dataset.metodeId);
-                if (!metodeCocok.includes(metodeId)) {
-                    card.classList.add('disabled');
-                    card.style.opacity = '0.4';
-                    card.style.pointerEvents = 'none';
-                    card.querySelector('input').disabled = true;
-                }
+                card.classList.remove('selected', 'disabled');
+                card.style.opacity = '1';
+                card.style.pointerEvents = 'auto';
+                card.querySelector('input').disabled = false;
             });
 
-            // Tampilkan catatan jika ada
-            if (catatan.trim()) {
-                catatanBox.style.display = 'block';
-                catatanText.textContent = catatan;
+            selectedMethods = []; // penting: reset daftar metode terpilih
+            updateSelectedList();
+            updateAnalyzeButton();
+
+            // Jika ada batasan metode cocok
+            if (metodeCocok.length > 0) {
+                methodCards.forEach(card => {
+                    const metodeId = parseInt(card.dataset.metodeId);
+                    if (!metodeCocok.includes(metodeId)) {
+                        card.classList.add('disabled');
+                        card.style.opacity = '0.4';
+                        card.style.pointerEvents = 'none';
+                        card.querySelector('input').disabled = true;
+                    }
+                });
+
+                // Tampilkan catatan jika ada
+                if (catatan.trim()) {
+                    catatanBox.style.display = 'block';
+                    catatanText.textContent = catatan;
+                } else {
+                    catatanBox.style.display = 'none';
+                }
             } else {
                 catatanBox.style.display = 'none';
             }
-        } else {
-            catatanBox.style.display = 'none';
+        });
+
+        // ====================
+        // Event klik pada method card (atau label/checkbox)
+        // ====================
+        methodCards.forEach(card => {
+            card.addEventListener('click', function(e) {
+                // Jangan proses kalau card disabled
+                if (this.classList.contains('disabled')) return;
+
+                const checkbox = this.querySelector('input[type="checkbox"]');
+                const metodeId = parseInt(this.dataset.metodeId);
+                const metodeName = this.querySelector('.method-name')?.textContent.trim() || 'Metode';
+
+                // Toggle checked
+                checkbox.checked = !checkbox.checked;
+
+                if (checkbox.checked) {
+                    this.classList.add('selected');
+                    addSelectedMethod(metodeId, metodeName);
+                } else {
+                    this.classList.remove('selected');
+                    removeSelectedMethod(metodeId);
+                }
+
+                updateAnalyzeButton();
+            });
+        });
+
+        // Optional: tambahan listener langsung ke checkbox (lebih reliable kalau klik label)
+        document.querySelectorAll('.method-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const card = this.closest('.method-card');
+                if (card.classList.contains('disabled')) {
+                    this.checked = false;
+                    return;
+                }
+
+                const metodeId = parseInt(card.dataset.metodeId);
+                const metodeName = card.querySelector('.method-name')?.textContent.trim() || 'Metode';
+
+                if (this.checked) {
+                    card.classList.add('selected');
+                    addSelectedMethod(metodeId, metodeName);
+                } else {
+                    card.classList.remove('selected');
+                    removeSelectedMethod(metodeId);
+                }
+
+                updateAnalyzeButton();
+            });
+        });
+
+        // ====================
+        // Fungsi helper
+        // ====================
+        function addSelectedMethod(id, name) {
+            // Cek duplikat sebelum tambah
+            if (!selectedMethods.some(m => m.id === id)) {
+                selectedMethods.push({
+                    id,
+                    name
+                });
+                updateSelectedList();
+            }
         }
-    });
 
-    // ====================
-    // Event klik pada method card (atau label/checkbox)
-    // ====================
-    methodCards.forEach(card => {
-        card.addEventListener('click', function(e) {
-            // Jangan proses kalau card disabled
-            if (this.classList.contains('disabled')) return;
-
-            const checkbox = this.querySelector('input[type="checkbox"]');
-            const metodeId = parseInt(this.dataset.metodeId);
-            const metodeName = this.querySelector('.method-name')?.textContent.trim() || 'Metode';
-
-            // Toggle checked
-            checkbox.checked = !checkbox.checked;
-
-            if (checkbox.checked) {
-                this.classList.add('selected');
-                addSelectedMethod(metodeId, metodeName);
-            } else {
-                this.classList.remove('selected');
-                removeSelectedMethod(metodeId);
-            }
-
-            updateAnalyzeButton();
-        });
-    });
-
-    // Optional: tambahan listener langsung ke checkbox (lebih reliable kalau klik label)
-    document.querySelectorAll('.method-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const card = this.closest('.method-card');
-            if (card.classList.contains('disabled')) {
-                this.checked = false;
-                return;
-            }
-
-            const metodeId = parseInt(card.dataset.metodeId);
-            const metodeName = card.querySelector('.method-name')?.textContent.trim() || 'Metode';
-
-            if (this.checked) {
-                card.classList.add('selected');
-                addSelectedMethod(metodeId, metodeName);
-            } else {
-                card.classList.remove('selected');
-                removeSelectedMethod(metodeId);
-            }
-
-            updateAnalyzeButton();
-        });
-    });
-
-    // ====================
-    // Fungsi helper
-    // ====================
-    function addSelectedMethod(id, name) {
-        // Cek duplikat sebelum tambah
-        if (!selectedMethods.some(m => m.id === id)) {
-            selectedMethods.push({ id, name });
+        function removeSelectedMethod(id) {
+            selectedMethods = selectedMethods.filter(m => m.id !== id);
             updateSelectedList();
+
+            // Sinkronkan checkbox & visual
+            const checkbox = document.querySelector(`#metode_${id}`);
+            if (checkbox) checkbox.checked = false;
+
+            const card = document.querySelector(`.method-card[data-metode-id="${id}"]`);
+            if (card) card.classList.remove('selected');
         }
-    }
 
-    function removeSelectedMethod(id) {
-        selectedMethods = selectedMethods.filter(m => m.id !== id);
-        updateSelectedList();
-
-        // Sinkronkan checkbox & visual
-        const checkbox = document.querySelector(`#metode_${id}`);
-        if (checkbox) checkbox.checked = false;
-
-        const card = document.querySelector(`.method-card[data-metode-id="${id}"]`);
-        if (card) card.classList.remove('selected');
-    }
-
-    function updateSelectedList() {
-        if (selectedMethods.length > 0) {
-            selectedMethodsDiv.style.display = 'block';
-            selectedMethodsList.innerHTML = selectedMethods.map(m => `
+        function updateSelectedList() {
+            if (selectedMethods.length > 0) {
+                selectedMethodsDiv.style.display = 'block';
+                selectedMethodsList.innerHTML = selectedMethods.map(m => `
                 <div class="selected-method-item">
                     <span class="selected-method-name">${m.name}</span>
                     <button type="button" class="remove-method-btn" onclick="removeSelectedMethod(${m.id})">✕</button>
                 </div>
             `).join('');
-        } else {
-            selectedMethodsDiv.style.display = 'none';
+            } else {
+                selectedMethodsDiv.style.display = 'none';
+            }
         }
-    }
 
-    function updateAnalyzeButton() {
-        const select = document.getElementById('makananSelect');
-        const makananDipilih = select.value && select.value.trim() !== "";  // lebih aman
-        const adaMetode = selectedMethods.length > 0;
+        function updateAnalyzeButton() {
+            const select = document.getElementById('makananSelect');
+            const makananDipilih = select.value && select.value.trim() !== ""; // lebih aman
+            const adaMetode = selectedMethods.length > 0;
 
-        analyzeBtn.disabled = !(makananDipilih && adaMetode);
-    }
-    // ====================
-    // Inisialisasi awal 
-    // ====================
-    updateAnalyzeButton();  // panggil sekali saat halaman load
+            analyzeBtn.disabled = !(makananDipilih && adaMetode);
+        }
 
-    // ====================
-    // Fungsi modal help 
-    // ====================
-    function showHelp() {
-        document.getElementById('helpModal').classList.add('active');
-    }
+        updateAnalyzeButton(); // panggil sekali saat halaman load
 
-    function closeHelp() {
-        document.getElementById('helpModal').classList.remove('active');
-    }
+        // ===== FUNCTION =====
 
-    document.getElementById('helpModal').addEventListener('click', function(e) {
-        if (e.target === this) closeHelp();
-    });
+        function showHelp() {
+            document.getElementById('helpModal').classList.add('active');
+        }
 
-    // ====================
-    // Kode yang DIHAPUS / TIDAK DIPAKAI LAGI:
-    // - document.getElementById('makananSelect').addEventListener('change', updateAnalyzeButton);
-    //   → sudah ditangani di dalam event change utama
-    // ====================
-</script>
+        function closeHelp() {
+            document.getElementById('helpModal').classList.remove('active');
+        }
+
+        document.getElementById('helpModal').addEventListener('click', function(e) {
+            if (e.target === this) closeHelp();
+        });
+
+        function showMetodeInfo() {
+            document.getElementById('metodeModal').classList.add('active');
+        }
+
+        function closeMetodeInfo() {
+            document.getElementById('metodeModal').classList.remove('active');
+        }
+
+        document.getElementById('metodeModal').addEventListener('click', function(e) {
+            if (e.target === this) closeMetodeInfo();
+        });
+    </script>
 @endsection

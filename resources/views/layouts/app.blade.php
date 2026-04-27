@@ -279,9 +279,9 @@
             <!-- Disclaimer Section -->
             <div class="disclaimer-modal" id ="disclaimerModal">
                 <div class="disclaimer-content">
-                    <h3>⚠️ Disclaimer</h3>
+                    <h3>Disclaimer</h3>
                     <p>
-                        Sistem Pakar Analisis Nutrisi ini dibuat untuk tujuan <strong>edukasi dan informasi</strong>
+                        Sistem Pakar Analisis Nutrisi ini dibuat untuk tujuan <strong>informasi</strong>
                         semata.
                         Informasi yang disajikan bersumber dari data TKPI 2020, USDA FoodData Central, dan penelitian
                         ilmiah terpublikasi.
@@ -290,15 +290,15 @@
                         <strong>Catatan Penting:</strong>
                     </p>
                     <ol>
-                        <li>Nilai nutrisi dapat bervariasi tergantung varietas, musim, dan metode pengolahan spesifik
+                        <li>Nilai nutrisi dapat bervariasi tergantung varietas, musim, dan metode pengolahan spesifik.
                         </li>
                         <li>Sistem ini bukan pengganti konsultasi dengan ahli gizi atau dokter
-                            profesional</li>
+                            profesional.</li>
                         <li>Untuk kebutuhan diet khusus atau kondisi medis tertentu, harap konsultasikan dengan tenaga
-                            kesehatan</li>
+                            kesehatan.</li>
                         <li>Pengembang tidak bertanggung jawab atas keputusan yang diambil berdasarkan informasi dari
-                            sistem ini</li>
-                        <li>Hasil analisis bersifat estimasi berdasarkan data rata-rata dan aturan umum</li>
+                            sistem ini.</li>
+                        <li>Hasil analisis bersifat estimasi berdasarkan data rata-rata dan aturan umum.</li>
                     </ol>
                     <p style="margin-top: 12px;">
                         Gunakan informasi ini sebagai panduan awal untuk memahami dampak metode pengolahan terhadap

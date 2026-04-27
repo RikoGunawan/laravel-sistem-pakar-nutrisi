@@ -68,7 +68,6 @@ class Rule extends Model
     {
         $nutrisiHasil = [];
         $perubahanPersen = $this->perubahan_nutrisi;
-
         $makronutrien = ['karbohidrat', 'protein', 'lemak'];
 
         foreach ($nutrisiMentah as $key => $nilai) {
@@ -87,7 +86,7 @@ class Rule extends Model
                         $nilai = 0.1;
                         $nutrisiHasil[$key] = max(0, $nilai * ($perubahan / 100));
                     } else {
-                        $nutrisiHasil[$key] = max(0, $nilai + ($nilai * ($perubahan / 100)));
+                        $nutrisiHasil[$key] = max(0, $nilai * (1 + ($perubahan / 100)));
                     }
                 } elseif ($key === 'kalori' && $perubahan == 0) {
                     // Rumus 4-4-9, pakai nilai hasil makronutrien yang sudah dihitung

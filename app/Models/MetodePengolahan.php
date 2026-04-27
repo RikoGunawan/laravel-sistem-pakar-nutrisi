@@ -28,9 +28,4 @@ class MetodePengolahan extends Model
         return $this->hasMany(AnalisisMetode::class);
     }
 
-    // Helper method untuk get rule
-    // public function getRule()
-    // {
-    //     return $this->rules()->first();
-    // }
 }

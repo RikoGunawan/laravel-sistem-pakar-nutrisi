@@ -263,6 +263,38 @@
             justify-content: center;
         }
 
+        .help-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.help-modal.active {
+    display: flex;
+}
+
+.help-content {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.help-content h3 {
+    color: #000000;
+    margin-bottom: 20px;
+}
+
         @media (max-width: 768px) {
             .result-header {
                 padding: 20px;
@@ -300,7 +332,12 @@
             <p>Komparasi {{ count($analisis->analisisMetode) }} Metode Pengolahan</p>
         </div>
 
-        <h2 style="color: #000000; margin-bottom: 20px;"> Tabel Komparasi Nutrisi</h2>
+        <h2 style="color: #000000; margin-bottom: 20px;"> Tabel Komparasi Nutrisi per 100 g
+            <a href="#" onclick="document.getElementById('badgeModal').classList.add('active'); return false;"
+        style="font-size: 0.75em; color: #ff7518; font-weight: 500; margin-left: 10px;">
+        <i class="bi bi-info-circle"></i> Cara membaca badge?
+    </a>
+        </h2>
 
         <div class="comparison-table-wrapper">
             <table class="comparison-table">
@@ -395,53 +432,25 @@
         <h2 style="color: #000000; margin-bottom: 20px;"> Ringkasan Komparasi</h2>
 
         <div class="summary-grid">
-            @php
-                $metodeTerbaik = null;
-                $metodeKaloriTinggi = null;
-                $metodeLemakRendah = null;
-
-                $minVitaminLoss = 100;
-                $maxKalori = 0;
-                $minLemak = PHP_INT_MAX;
-
-                foreach ($analisis->analisisMetode as $am) {
-                    $vitaminLoss = abs($am->perubahan_persen['vitamin_c'] ?? 0);
-                    if ($vitaminLoss < $minVitaminLoss) {
-                        $minVitaminLoss = $vitaminLoss;
-                        $metodeTerbaik = $am->metodePengolahan;
-                    }
-
-                    if ($am->nutrisi_hasil['kalori'] > $maxKalori) {
-                        $maxKalori = $am->nutrisi_hasil['kalori'];
-                        $metodeKaloriTinggi = $am->metodePengolahan;
-                    }
-
-                    if ($am->nutrisi_hasil['lemak'] < $minLemak) {
-                        $minLemak = $am->nutrisi_hasil['lemak'];
-                        $metodeLemakRendah = $am->metodePengolahan;
-                    }
-                }
-            @endphp
-
             <div class="summary-card best">
                 <div class="summary-icon"><i class="bi bi-award"></i></div>
-                <div class="summary-title">Terbaik Mempertahankan Nutrisi</div>
-                <div class="summary-method">{{ $metodeTerbaik->name }}</div>
-                <div class="summary-desc">Kehilangan vitamin hanya {{ $minVitaminLoss }}%</div>
+                <div class="summary-title">Terbaik Mempertahankan Vitamin</div>
+                <div class="summary-method">{{ implode(', ', $ringkasan['metodeTerbaik']) ?: '-' }}</div>
+                <div class="summary-desc">Total vitamin: {{ number_format($ringkasan['maxVitamin'], 2) }}</div>
             </div>
 
             <div class="summary-card worst">
                 <div class="summary-icon"><i class="bi bi-exclamation-lg"></i></div>
                 <div class="summary-title">Kalori Tertinggi</div>
-                <div class="summary-method">{{ $metodeKaloriTinggi->name }}</div>
-                <div class="summary-desc">Kalori: {{ number_format($maxKalori, 0) }} kkal</div>
+                <div class="summary-method">{{ implode(', ', $ringkasan['metodeKaloriTinggi']) ?: '-' }}</div>
+                <div class="summary-desc">Kalori: {{ number_format($ringkasan['maxKalori'], 0) }} kkal</div>
             </div>
 
             <div class="summary-card neutral">
                 <div class="summary-icon"><i class="bi bi-droplet text-muted me-1"></i></div>
                 <div class="summary-title">Rendah Lemak</div>
-                <div class="summary-method">{{ $metodeLemakRendah->name }}</div>
-                <div class="summary-desc">Lemak: {{ number_format($minLemak, 2) }}g</div>
+                <div class="summary-method">{{ implode(', ', $ringkasan['metodeLemakRendah']) ?: '-' }}</div>
+                <div class="summary-desc">Lemak: {{ number_format($ringkasan['minLemak'], 2) }}g</div>
             </div>
         </div>
 
@@ -475,7 +484,8 @@
                         $sources = collect();
 
                         if ($rule && $rule->sumber_referensi) {
-                            $list = preg_split('/[\r\n,]+/', $rule->sumber_referensi);
+                            // UPDATE: Mengganti koma (,) menjadi titik koma (;)
+                            $list = preg_split('/[\r\n;]+/', $rule->sumber_referensi);
                             foreach ($list as $item) {
                                 $trimmed = trim($item);
                                 if ($trimmed !== '') {
@@ -504,7 +514,6 @@
                                         {{ $sources[0] }}
                                     @endif
                                 @else
-                                    Bognar Food Composition Database
                                 @endif
                             </p>
 
@@ -521,7 +530,6 @@
                                         {{ $sources[1] }}
                                     @endif
                                 @else
-                                    USDA Table of Nutrient Retention Factors Release 6
                                 @endif
                             </p>
 
@@ -547,8 +555,84 @@
                 @if ($analisis->analisisMetode->isEmpty())
                     <p class="text-gray-500 italic">Tidak ada sumber referensi yang tersedia untuk analisis ini.</p>
                 @endif
-
+            <br>
+                <span>Note: Sumber referensi dari Bognar digunakan untuk metode masak yang spesial 
+                    terutama tidak berkaitan dengan penambahan bahan lain seperti tepung, minyak, dll.
+                     Untuk metode masak yang berkaitan dengan minyak seperti fry, deep-fry, 
+                     goreng tepung, dan sejenisnya menggunakan sumber dari data asli makanan sesudah 
+                     diolah agar lebih realistis.</span>
             </div>
         </div>
     </div>
+    <!-- Modal Penjelasan Badge -->
+<div class="help-modal" id="badgeModal">
+    <div class="help-content">
+        <h3>Panduan Membaca Badge Perubahan Nutrisi</h3>
+
+        <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 10px;">
+
+            {{-- WARNA --}}
+            <div style="border-left: 4px solid #059669; padding: 12px 16px; background: #f8f9fa; border-radius: 0 8px 8px 0;">
+                <div style="font-weight: 700; font-size: 1em; margin-bottom: 6px;">
+                    <span class="badge badge-success">↑↓ 10%</span> Hijau (Perubahan Baik)
+                </div>
+                <div style="color: #555; font-size: 0.95em; line-height: 1.6;">
+                    Nutrisi yang <strong>lebih tinggi = lebih baik</strong> (protein, vitamin) mengalami kenaikan.<br>
+                    Atau nutrisi yang <strong>lebih rendah = lebih baik</strong> (lemak, kalori, karbohidrat) mengalami penurunan.
+                </div>
+            </div>
+
+            <div style="border-left: 4px solid #f59e0b; padding: 12px 16px; background: #f8f9fa; border-radius: 0 8px 8px 0;">
+                <div style="font-weight: 700; font-size: 1em; margin-bottom: 6px;">
+                    <span class="badge badge-warning">↑↓ 15%</span> Kuning (Perubahan Ringan) 
+                </div>
+                <div style="color: #555; font-size: 0.95em; line-height: 1.6;">
+                    Perubahan ke arah yang kurang baik namun masih 20% ke bawah. Perlu diperhatikan tapi tidak kritis.
+                </div>
+            </div>
+
+            <div style="border-left: 4px solid #dc2626; padding: 12px 16px; background: #f8f9fa; border-radius: 0 8px 8px 0;">
+                <div style="font-weight: 700; font-size: 1em; margin-bottom: 6px;">
+                    <span class="badge badge-danger">↑↓ 30%</span> Merah (Perubahan Signifikan)
+                </div>
+                <div style="color: #555; font-size: 0.95em; line-height: 1.6;">
+                    Perubahan ke arah yang kurang baik dan melebihi 20%. Misalnya lemak atau kalori naik drastis, atau vitamin turun drastis.
+                </div>
+            </div>
+
+            {{-- ARAH --}}
+            <div style="border-left: 4px solid #2a2c41; padding: 12px 16px; background: #f8f9fa; border-radius: 0 8px 8px 0;">
+                <div style="font-weight: 700; font-size: 1em; margin-bottom: 6px;">Arti Simbol Arah</div>
+                <div style="color: #555; font-size: 0.95em; line-height: 1.8;">
+                    <strong>↑</strong> — Nilai naik dibanding mentah<br>
+                    <strong>↓</strong> — Nilai turun dibanding mentah<br>
+                    <strong>→</strong> — Tidak ada perubahan (0%)<br>
+                    <strong>!</strong> — Data perubahan tidak tersedia
+                </div>
+            </div>
+
+            <div style="padding: 12px 16px; background: #f8f9fa; border-radius: 0 8px 8px 0;">
+                <div style="font-weight: 700; font-size: 1em; margin-bottom: 6px;">
+                    Contoh
+                    <span class="badge badge-danger">↑ +30%</span>
+                </div>
+                <div style="color: #555; font-size: 0.95em; line-height: 1.6;">
+                    artinya nilai nutrisi naik 30% dari nilai mentah, kurang baik karena nutisi lemak yang naik.
+                </div>
+            </div>
+            {{-- NUTRISI LOWER IS BETTER --}}
+            <div style="border-left: 4px solid #ff7518; padding: 12px 16px; background: #f8f9fa; border-radius: 0 8px 8px 0;">
+                <div style="font-weight: 700; font-size: 1em; margin-bottom: 6px;">Catatan Penting</div>
+                <div style="color: #555; font-size: 0.95em; line-height: 1.6;">
+                    Tidak semua kenaikan itu buruk. <strong>Protein dan vitamin</strong> yang naik itu bagus (hijau). 
+                    Sebaliknya, <strong>lemak, kalori, dan karbohidrat</strong> yang turun itu bagus (hijau).
+                </div>
+            </div>
+
+        </div>
+
+        <button onclick="document.getElementById('badgeModal').classList.remove('active')" 
+            class="btn btn-primary" style="margin-top: 20px;">Mengerti</button>
+    </div>
+</div>
 @endsection
