@@ -12,16 +12,19 @@ class RuleEngineService
         $nutrisi = $makanan->getNutrisiMentah();
         $appliedRules = [];
 
-        $rules = Rule::where('metode_pengolahan_id', $metodeId)
-            ->orderByRaw("
-            CASE
-                WHEN makanan_id IS NOT NULL THEN 1
-                WHEN kategori IS NOT NULL THEN 2
-                ELSE 3
-            END ASC
-        ")
-            ->orderBy('prioritas', 'DESC')
-            ->get();
+        $rules = Rule::where('metode_pengolahan_id', $metodeId)->get();
+
+        // Sort prioritas makanan_id > sub_kategori > kategori > umum
+        $rules = $rules->sortBy(function (Rule $rule) use ($makanan) {
+            if ($rule->makanan_id !== null)  return 1;
+            if ($rule->kategori !== null) {
+                if (!empty($makanan->sub_kategori) && $rule->kategori === $makanan->sub_kategori) {
+                    return 2;
+                }
+                return 3;
+            }
+            return 4;
+        })->values();
 
         // Tentukan rule mana yang benar-benar diterapkan (paling spesifik)
         $ruleYangDiterapkan = null;
@@ -48,9 +51,7 @@ class RuleEngineService
             'kode_rule'  => $ruleYangDiterapkan->kode_rule,
             'perubahan'  => $result['perubahan_persen'],
             'penjelasan' => $ruleYangDiterapkan->penjelasan,
-            'prioritas'  => $ruleYangDiterapkan->prioritas,
             'tipe_rule'  => $this->getRuleType($ruleYangDiterapkan),
-            'rule'       => $ruleYangDiterapkan,
         ];
 
         // Rule lain yang match tapi tidak diterapkan → masuk trace sebagai "dilewati"
@@ -60,11 +61,7 @@ class RuleEngineService
                 $appliedRules[] = [
                     'rule_id'    => $rule->id,
                     'kode_rule'  => $rule->kode_rule,
-                    'perubahan'  => $rule->perubahan_nutrisi,
-                    'penjelasan' => $rule->penjelasan . ' [tidak diterapkan - kalah prioritas]',
-                    'prioritas'  => $rule->prioritas,
                     'tipe_rule'  => $this->getRuleType($rule),
-                    'rule'       => $rule,
                     'dilewati'   => true, // ← flag untuk UI/trace
                 ];
             }
@@ -76,10 +73,15 @@ class RuleEngineService
         ];
     }
 
-    private function getRuleType(Rule $rule): string
+    private function getRuleType(Rule $rule, ?Makanan $makanan = null): string
     {
         if ($rule->makanan_id !== null) return 'spesifik_makanan';
-        if ($rule->kategori !== null)   return 'kategori';
+        if ($rule->kategori !== null) {
+            if ($makanan && !empty($makanan->sub_kategori) && $rule->kategori === $makanan->sub_kategori) {
+                return 'sub_kategori';
+            }
+            return 'kategori';
+        }
         return 'umum';
     }
 }

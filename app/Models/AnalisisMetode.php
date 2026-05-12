@@ -17,11 +17,13 @@ class AnalisisMetode extends Model
         'rule_id',
         'nutrisi_hasil',
         'perubahan_persen',
+        'rules_dievaluasi',
     ];
 
     protected $casts = [
         'nutrisi_hasil' => 'array',
         'perubahan_persen' => 'array',
+        'rules_dievaluasi' => 'array',
     ];
 
     // Relationships

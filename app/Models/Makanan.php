@@ -15,6 +15,7 @@ class Makanan extends Model
     protected $fillable = [
         'name',
         'kategori',
+        'sub_kategori',
         'description',
         'image',
         'sumber_data',

@@ -43,24 +43,29 @@ class Rule extends Model
         return $this->hasMany(AnalisisMetode::class);
     }
 
-    //Cek apakah rule ini cocok dengan makanan & metode yang diberikan
+    // =======  PENCOCOKAN RULE  =======
     public function matches(int $metodeId, ?Makanan $makanan = null): bool
     {
         if ($this->metode_pengolahan_id != $metodeId) {
             return false;
         }
-
-        // Level 1: Berdasarkan makanan_id
+        // Level 1: Spesifik makanan
         if ($this->makanan_id !== null) {
             return $makanan && $this->makanan_id === $makanan->id;
         }
-
-        // Level 2: Berdasarkan kategori
+        // Level 2: Sub Kategori -> Kategori
         if ($this->kategori !== null) {
-            return $makanan && $this->kategori === $makanan->kategori;
-        }
+            if (!$makanan) return false;
 
-        // Level 3: Rule umum (hanya metode)
+            if (!empty($makanan->sub_kategori) && $this->kategori === $makanan->sub_kategori) {
+                return true;
+            }
+            if ($this->kategori === $makanan->kategori) {
+                return true;
+            }
+            return false;
+        }
+       // Level 3: Rule umum
         return true;
     }
 

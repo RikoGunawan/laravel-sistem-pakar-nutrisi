@@ -54,13 +54,13 @@
             border-radius: 20px;
             overflow: hidden;
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
-            /* margin-top: 20px; */
         }
 
         .detail-image {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            display: block;
         }
 
         /* Tabel Nutrisi */
@@ -192,8 +192,6 @@
                             <td><strong>Kalori</strong></td>
                             <td>{{ cleanDecimal($makanan->kalori) }} kkal</td>
                         </tr>
-                        {{-- <tr><td>Serat</td><td>{{ $makanan->serat ?? '-' }} g</td></tr> --}}
-                        {{-- <tr><td>Gula</td><td>{{ $makanan->gula ?? '-' }} g</td></tr> --}}
                         <tr>
                             <td>Vitamin A (Retinol)</td>
                             <td>{{ cleanDecimal($makanan->vitamin_a) }} mcg</td>

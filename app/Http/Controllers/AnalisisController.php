@@ -7,7 +7,6 @@ use App\Models\Makanan;
 use App\Models\MetodePengolahan;
 use App\Models\AnalisisNutrisi;
 use App\Models\AnalisisMetode;
-use App\Models\TracePenalaran;
 use App\Models\Rekomendasi;
 use App\Services\RuleEngineService;
 use Illuminate\Support\Facades\DB;
@@ -87,29 +86,10 @@ class AnalisisController extends Controller
                     'rule_id'              => $ruleUtama['rule_id'] ?? null,
                     'nutrisi_hasil'        => $nutrisiHasil,
                     'perubahan_persen'     => $ruleUtama['perubahan'] ?? [],
+                    'rules_dievaluasi'     => $result['rules_diterapkan'],
                 ]);
 
-                // === TRACE PENALARAN FORWARD CHAINING (Per Rule) ===
                 $currentNutrisi = $nutrisiMentah;   // reset ke nutrisi mentah untuk setiap metode
-
-                foreach ($result['rules_diterapkan'] as $applied) {
-                    TracePenalaran::create([
-                        'analisis_nutrisi_id' => $analisis->id,
-                        'fakta_awal'  => $currentNutrisi === $nutrisiMentah
-                            ? "Fakta Awal → Makanan: {$makanan->name} | Kategori: " . ($makanan->kategori ?? '-')
-                            : "Fakta sebelum rule ini → " . json_encode($currentNutrisi, JSON_PRETTY_PRINT),
-
-                        'rule_used'   => $applied['kode_rule'],
-                        'proses'      => "Menerapkan rule {$applied['kode_rule']} (Tipe: {$applied['tipe_rule']}) pada metode {$metode->name}" .
-                            ($applied['penjelasan'] ? " | Alasan: {$applied['penjelasan']}" : ''),
-
-                        'fakta_baru'  => "Hasil setelah rule {$applied['kode_rule']}: " . json_encode($nutrisiHasil, JSON_PRETTY_PRINT),
-                        'step_order'  => $stepOrder++,
-                    ]);
-
-                    // Update current nutrisi untuk rule berikutnya (chaining)
-                    $currentNutrisi = $nutrisiHasil;
-                }
 
                 // Kumpulkan hasil komparasi
                 $hasilKomparasi[$metode->name] = [
@@ -153,7 +133,6 @@ class AnalisisController extends Controller
             'makanan',
             'analisisMetode.metodePengolahan',
             'analisisMetode.rule',
-            'tracePenalaran',
             'rekomendasi'
         ])->findOrFail($id);
 
@@ -170,6 +149,12 @@ class AnalisisController extends Controller
             ];
         }
         $ringkasan = $this->hitungRingkasan($hasilKomparasi);
+        // Tentukan kategori makanan
+        $kategoriMakanan = strtolower($analisis->makanan->kategori ?? '');
+        $isProteinKarbo = in_array($kategoriMakanan, ['protein', 'karbohidrat']);
+
+        $penjelasanSpesifik = $this->getPenjelasanSpesifik($hasilKomparasi, $analisis);
+
         // Kumpulkan SEMUA rules_diterapkan dari semua metode (supaya footnote bisa ambil semua sumber)
         $rulesDiterapkanSemua = collect();
 
@@ -188,28 +173,30 @@ class AnalisisController extends Controller
             'analisis',
             'rulesDiterapkanSemua',
             'ringkasan',
-            'summary'
+            'isProteinKarbo',
+            'summary',
+            'penjelasanSpesifik'
         ));
     }
 
     // ====================== TRACE PENALARAN ======================
     public function trace($id)
-{
-    $analisis = AnalisisNutrisi::with([
-        'makanan',
-        'tracePenalaran' => fn($q) => $q->ordered(),
-        'analisisMetode.metodePengolahan',
-        'analisisMetode.rule',
-    ])->findOrFail($id);
+    {
+        $analisis = AnalisisNutrisi::with([
+            'makanan',
+            'analisisMetode.metodePengolahan',
+            'analisisMetode.rule',
+        ])->findOrFail($id);
 
-    return view('analisis.trace', compact('analisis'));
-}
+        return view('analisis.trace', compact('analisis'));
+    }
 
     // ====================== HELPER METHODS ======================
 
     private function hitungRingkasan(array $hasilKomparasi): array
     {
         $maxVitamin        = -PHP_FLOAT_MAX;
+        $minVitamin        = PHP_FLOAT_MAX;
         $maxKalori         = 0;
         $minLemak          = PHP_FLOAT_MAX;
         $minKalori         = PHP_FLOAT_MAX;
@@ -226,6 +213,7 @@ class AnalisisController extends Controller
             $protein      = $nutrisi['protein'] ?? 0;
 
             if ($totalVitamin > $maxVitamin) $maxVitamin = $totalVitamin;
+            if ($totalVitamin < $minVitamin) $minVitamin = $totalVitamin;
             if ($kalori > $maxKalori)        $maxKalori  = $kalori;
             if ($lemak < $minLemak)          $minLemak   = $lemak;
             if ($kalori < $minKalori)        $minKalori  = $kalori;
@@ -235,6 +223,7 @@ class AnalisisController extends Controller
 
         // Pass 2: kumpulkan semua metode yang mencapai nilai ekstrem tersebut
         $metodeTerbaik      = [];
+        $metodeKehilanganVitamin = [];
         $metodeKaloriTinggi = [];
         $metodeLemakRendah  = [];
         $metodeKaloriRendah = [];
@@ -251,6 +240,7 @@ class AnalisisController extends Controller
 
             if ($protein == $maxProtein)             $metodeProteinTinggi[] = $nama;
             if ($totalVitamin == $maxVitamin)        $metodeTerbaik[]      = $nama;
+            if ($totalVitamin == $minVitamin)        $metodeKehilanganVitamin[] = $nama;
             if ($kalori == $maxKalori)               $metodeKaloriTinggi[] = $nama;
             if ($lemak == $minLemak)                 $metodeLemakRendah[]  = $nama;
             if ($kalori == $minKalori)               $metodeKaloriRendah[] = $nama;
@@ -259,6 +249,7 @@ class AnalisisController extends Controller
 
         return [
             'metodeTerbaik'      => $metodeTerbaik,
+            'metodeKehilanganVitamin' => $metodeKehilanganVitamin,
             'metodeKaloriTinggi' => $metodeKaloriTinggi,
             'metodeProteinTinggi' => $metodeProteinTinggi,
             'maxProtein'         => $maxProtein,
@@ -266,6 +257,7 @@ class AnalisisController extends Controller
             'metodeKaloriRendah' => $metodeKaloriRendah,
             'metodeHindari'      => $metodeHindari,
             'maxVitamin'         => $maxVitamin,
+            'minVitamin'              => $minVitamin,
             'maxKalori'          => $maxKalori,
             'minLemak'           => $minLemak,
             'minKalori'          => $minKalori,
@@ -329,6 +321,7 @@ class AnalisisController extends Controller
 
         return json_encode($summary);
     }
+
 
     private function generateRecommendations(AnalisisNutrisi $analisis, array $hasilKomparasi): void
     {
@@ -400,5 +393,111 @@ class AnalisisController extends Controller
             }
         }
         return $tidakCocok;
+    }
+
+    private function getPenjelasanSpesifik(array $hasilKomparasi, AnalisisNutrisi $analisis): array
+    {
+        $penjelasan = [];
+
+        foreach ($analisis->analisisMetode as $am) {
+            $namaMetode = $am->metodePengolahan->name;
+
+            // Ambil penjelasan dari rule yang benar-benar diterapkan (sudah tersimpan di analisis_metode)
+            $penjelasanDariRule = $am->rule?->penjelasan ?? null;
+            $kodeRule           = $am->rule?->kode_rule ?? null;
+            $umumData           = $this->getPenjelasanUmum($namaMetode);
+
+            $penjelasan[$namaMetode] = [
+                'kode_rule'  => $kodeRule,
+                'spesifik'   => $penjelasanDariRule,
+                'umum'       => $umumData['teks'] ?? null,
+                'umum_link'  => $umumData['link'] ?? null,
+            ];
+        }
+
+        return $penjelasan;
+    }
+
+    private function getPenjelasanUmum(string $namaMetode): ?array
+    {
+        $nama = strtolower($namaMetode);
+
+        if (str_contains($nama, 'tepung') || str_contains($nama, 'breaded') || str_contains($nama, 'battered')) {
+            return [
+                'teks' => "Lapisan tepung/batter pada goreng tepung bertindak sebagai insulasi termal yang melindungi bagian
+        dalam dari panas langsung, sehingga dapat lebih baik mempertahankan beberapa nutrisi internal. Namun, lapisan ini 
+        cenderung menyerap minyak lebih banyak, sehingga total kalori dan lemak meningkat dibanding goreng tanpa coating.",
+                'link' => 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10888343/',
+            ];
+        }
+
+        if (str_contains($nama, 'deep') || str_contains($nama, 'rendam')) {
+            return [
+                'teks' => "Deep frying merendam bahan sepenuhnya dalam minyak panas sehingga terbentuk kerak luar (crust) dengan cepat 
+        yang berfungsi sebagai barrier. Proses ini menyebabkan penyerapan minyak yang signifikan, peningkatan kalori/lemak, 
+        serta perubahan nutrisi dan vitamin sensitif panas. Bagian dalam terpapar panas lebih singkat dibanding beberapa metode lain, tapi secara keseluruhan meningkatkan kandungan lemak.",
+                'link' => 'https://link.springer.com/article/10.1007/s00217-024-04482-3',
+            ];
+        }
+
+        if (str_contains($nama, 'goreng') || str_contains($nama, 'fry')) {
+            return [
+                'teks' => "Metode goreng (frying) menyebabkan makanan menyerap minyak sehingga
+                kandungan lemak dan kalori meningkat signifikan. Jika suhu menggoreng tinggi, vitamin cenderung berkurang.
+                Walaupun demikian, Vitamin A (Retinol) dan Carotenoids relatif stabil jika suhu memasak tidak terlalu tinggi.",
+                'link' => 'https://onlinelibrary.wiley.com/doi/abs/10.1111/nbu.12584',
+            ];
+        }
+
+        if (str_contains($nama, 'stew') || str_contains($nama, 'simmer') || str_contains($nama, 'lama')) {
+            return [
+                'teks' => "Pada metode stew/simmer, bahan dimasak dalam cairan dalam waktu lama dengan api kecil-sedang (di bawah suhu 100°C / tidak mendidih). 
+        Vitamin larut air (B dan C) serta mineral yang keluar dari bahan makanan masuk ke dalam kuah. 
+        Karena kuah biasanya ikut dikonsumsi, nutrisi tersebut tidak hilang melainkan tetap tersedia. 
+        Ini berbeda dengan boiling biasa di mana air rebusan sering dibuang.",
+                'link' => 'https://onlinelibrary.wiley.com/doi/abs/10.1111/nbu.12584',  // Ringkasan berbasis studi (update 2025); atau cari review spesifik braising/stewing
+            ];
+        }
+
+        if (str_contains($nama, 'rebus') || str_contains($nama, 'boil')) {
+            return [
+                'teks' => "Vitamin B dan C merupakan nutrisi yang sensitif terhadap panas dan larut air. Vitamin tersebut larut ke dalam air
+                rebusan sehingga nilai nutrisi pada makanan itu sendiri menurun.",
+                'link' => 'https://onlinelibrary.wiley.com/doi/abs/10.1111/nbu.12584',
+            ];
+        }
+
+        if (str_contains($nama, 'kukus') || str_contains($nama, 'steam')) {
+            return [
+                'teks' => "Makanan tidak bersentuhan langsung dengan air dan suhu uap yang tidak melampaui
+                100°C dapat meminimalkan kehilangan nutrisi terkhususnya nutrisi sensitif panas dan larut air.",
+                'link' => 'https://onlinelibrary.wiley.com/doi/abs/10.1111/nbu.12584',
+            ];
+        }
+
+        if (str_contains($nama, 'panggang') || str_contains($nama, 'roast')) {
+            return [
+                'teks' => "Panggang (oven) menggunakan panas kering yang dapat menyebabkan 
+                lemak pada daging meleleh dan menetes selama proses memasak sehingga kandungan lemak 
+                total pada bahan berkurang. Suhu tinggi dapat menyebabkan denaturasi protein yang artinya penyederhanaan 
+                struktur protein sehingga protein lebih mudah dicerna oleh tubuh 
+                namun jika panasnya terlalu tinggi, terjadi reaksi Maillard yang merusak lisina sehingga nilai gizi 
+                proteinnya berkurang lebih banyak lagi.",
+                'link' => 'https://www.allresearchjournal.com/archives/2025/vol11issue10/PartC/11-10-20-294.pdf',
+            ];
+        }
+        // Bakar / grill
+        if (str_contains($nama, 'bakar') || str_contains($nama, 'grill')) {
+            return [
+                'teks' => "Pembakaran menyebabkan lemak meleleh dan menetes keluar (drip loss)
+                sehingga kandungan lemak turun. Vitamin dan nutrisi sensitif panas juga berkurang akibat suhu tinggi.
+                Suhu tinggi juga dapat menyebabkan denaturasi protein yang artinya penyederhanaan 
+                struktur protein sehingga protein lebih mudah dicerna oleh tubuh 
+                namun jika panasnya terlalu tinggi, terjadi reaksi Maillard yang merusak lisina sehingga nilai gizi 
+                proteinnya berkurang lebih banyak lagi.",
+                'link' => 'https://www.allresearchjournal.com/archives/2025/vol11issue10/PartC/11-10-20-294.pdf',
+            ];
+        }
+        return null;
     }
 }

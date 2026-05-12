@@ -335,6 +335,9 @@
                         </div>
                     </div>
                 @endforeach
+                <div> Catatan: Jika metode pengolahan tidak bisa diklik maka data untuk metode pengolahan pada makanan
+                        tersebut belum tersedia.
+                </div>
             </div>
             <button onclick="closeMetodeInfo()" class="btn btn-primary" style="margin-top: 20px;">Tutup</button>
         </div>
