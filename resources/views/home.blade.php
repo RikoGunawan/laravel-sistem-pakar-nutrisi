@@ -3,122 +3,170 @@
 @section('title', 'Home - Sistem Pakar Nutrisi')
 
 @section('styles')
-<style>
-    body {
-            background: url('{{ asset('images/home.jpg') }}') no-repeat center/cover fixed !important;
+    <style>
+        .hero-section {
+            position: relative;
+            overflow: hidden;
+            height: 100vh;
+            margin-top: -70px;
+            margin-left: calc(-50vw + 50%);
+            margin-right: calc(-50vw + 50%);
+            margin-bottom: 60px;
+            width: 100vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-    .hero {
-        background: white;
-        border-radius: 12px;
-        padding: 60px;
-        text-align: center;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        margin-bottom: 40px;
-    }
 
-    .hero h1 {
-        font-size: 2.5em;
-        color: #000000;
-        margin-bottom: 20px;
-    }
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url('{{ asset('images/ella-olsson-oPBjWBCcAEo-unsplash.jpg') }}') no-repeat center center;
+            background-size: cover;
+            transform: scale(2.2);
+            transform-origin: 30% 40%;
+        }
 
-    .hero p {
-        font-size: 1.2em;
-        color: #666;
-        margin-bottom: 30px;
-    }
+        .home-content {
+            padding: 40px 0 90px 0;
+        }
 
-    .stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-        margin-bottom: 40px;
-    }
+        .main-heading {
+            text-align: center;
+            margin-bottom: 70px;
+            z-index: 1;
+        }
 
-    .stat-card {
-        background: white;
-        padding: 30px;
-        border-radius: 12px;
-        text-align: center;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
+        .main-heading h1 {
+            font-size: 2.75rem;
+            line-height: 1.15;
+            color: #1f2937;
+            margin-bottom: 18px;
+        }
 
-    .stat-icon {
-        font-size: 3em;
-        margin-bottom: 15px;
-    }
+        .main-heading p {
+            font-size: 1.25rem;
+            color: #4b5563;
+            max-width: 720px;
+            margin: 0 auto;
+        }
 
-    .stat-number {
-        font-size: 2em;
-        font-weight: bold;
-        color: #ff724c;
-        margin-bottom: 10px;
-    }
+        .btn-start {
+            background: linear-gradient(135deg, #ffa500 0%, #ff724c 100%);
+            color: white;
+            padding: 15px 42px;
+            border-radius: 9999px;
+            font-size: 1.15rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 25px;
+            box-shadow: 0 8px 20px rgba(255, 114, 76, 0.3);
+            transition: all 0.3s;
+        }
 
-    .stat-label {
-        color: #666;
-        font-size: 1.1em;
-    }
+        .btn-start:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 25px rgba(255, 114, 76, 0.4);
+        }
 
-    .info-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 20px;
-    }
+        .info-title {
+            text-align: center;
+            font-size: 2.2rem;
+            color: #1f2937;
+            margin-bottom: 40px;
+            position: relative;
+        }
 
-    .info-card {
-        background: white;
-        padding: 25px;
-        border-radius: 12px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
+        .info-title:after {
+            content: '';
+            width: 70px;
+            height: 4px;
+            background: linear-gradient(135deg, #ffa500, #ff724c);
+            display: block;
+            margin: 12px auto 0;
+            border-radius: 2px;
+        }
 
-    .info-card h3 {
-        color: #ff724c;
-        margin-bottom: 15px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
+        .info-list {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
 
-    .info-card p {
-        color: #666;
-        line-height: 1.6;
-    }
-</style>
+        .info-item {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.07);
+            border-left: 6px solid #ff724c;
+            transition: all 0.3s;
+        }
+
+        .info-item:hover {
+            border-left-color: #ffa500;
+            transform: translateY(-6px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-item h3 {
+            font-size: 1.4rem;
+            margin-bottom: 14px;
+            color: #1f2937;
+        }
+
+        .info-item p {
+            color: #4b5563;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+
+        .read-more {
+            color: #ff724c;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .read-more:hover {
+            color: #e65c2b;
+        }
+    </style>
+
 @endsection
 
 @section('content')
-    <div class="hero">
-        <h1>Sistem Pakar Analisis Nutrisi Makanan</h1>
-        <p>Ketahui bagaimana metode pengolahan mengubah kandungan nutrisi makanan Indonesia</p>
-        <a href="{{ route('analisis.index') }}" class="btn btn-primary">Mulai Analisis</a>
-    </div>
 
-    <div class="stats">
-        <div class="stat-card">
-            <div class="stat-number">{{ $stats['total_makanan'] }}</div>
-            <div class="stat-label">Jenis Makanan</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number">{{ $stats['total_kategori'] }}</div>
-            <div class="stat-label">Kategori</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number">5</div>
-            <div class="stat-label">Metode Pengolahan</div>
-        </div>
-    </div>
+    <div class="home-content">
 
-    <h2 style="text-align: center; color: #ffffff; margin-bottom: 30px;">Informasi Gizi Terkini</h2>
-
-    <div class="info-grid">
-        @foreach($informasiGizi as $info)
-        <div class="info-card">
-            <h3>{{ $info->icon }} {{ $info->judul }}</h3>
-            <p>{{ Str::limit($info->konten, 150) }}</p>
-            <a href="{{ route('informasi-gizi.show', $info->id) }}" class="btn btn-primary" style="margin-top: 15px;">Baca Selengkapnya</a>
+        <div class="hero-section">
+            <div class="main-heading">
+                <h1>Masak Apa yang Paling Sehat?</h1>
+                <p>Cari tahu bagaimana cara pengolahan mengubah nutrisi makanan Indonesia</p>
+                <a href="{{ route('analisis.index') }}" class="btn-start">
+                    Cek Nutrisi Makananmu
+                </a>
+            </div>
         </div>
-        @endforeach
+
+        <!-- Informasi Gizi -->
+        <h2 class="info-title">Informasi Gizi Terkini</h2>
+
+        <div class="info-list">
+            @forelse($informasiGizi as $info)
+                <div class="info-item">
+                    <h3>{{ $info->judul }}</h3>
+                    <p>{{ Str::limit(strip_tags($info->konten ?? ''), 190) }}</p>
+                    <a href="{{ route('informasi-gizi.show', $info->id) }}" class="read-more">
+                        Baca Selengkapnya →
+                    </a>
+                </div>
+            @empty
+                <p style="text-align:center; padding:40px; background:white; border-radius:12px;">
+                    Belum ada artikel informasi gizi.
+                </p>
+            @endforelse
+        </div>
+
     </div>
 @endsection

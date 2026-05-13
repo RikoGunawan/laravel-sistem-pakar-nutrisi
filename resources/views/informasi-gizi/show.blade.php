@@ -47,7 +47,6 @@
             background: #f8f9fa;
             padding: 30px;
             border-radius: 12px;
-            border-left: 4px solid #ffca28;
             line-height: 1.8;
             font-size: 1.1em;
             color: #333;
@@ -119,6 +118,44 @@
             object-fit: cover;
             object-position: center;
             display: block;
+            cursor: zoom-in;
+        }
+
+        .lightbox-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-overlay.active {
+            display: flex;
+        }
+
+        .lightbox-overlay img {
+            max-width: 90vw;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 28px;
+            color: white;
+            font-size: 2.5rem;
+            cursor: pointer;
+            line-height: 1;
+            opacity: 0.8;
+        }
+
+        .lightbox-close:hover {
+            opacity: 1;
         }
 
         .right-main-content {
@@ -264,4 +301,33 @@
             </div>
         @endif
     </div>
+<!-- Lightbox -->
+    <div class="lightbox-overlay" id="lightbox">
+        <span class="lightbox-close" id="lightboxClose">&times;</span>
+        <img id="lightboxImg" src="" alt="">
+    </div>
+
+    <script>
+        const img = document.querySelector('.side-image-frame img');
+        const overlay = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightboxImg');
+        const closeBtn = document.getElementById('lightboxClose');
+
+        img.addEventListener('click', () => {
+            lightboxImg.src = img.src;
+            overlay.classList.add('active');
+        });
+
+        closeBtn.addEventListener('click', () => overlay.classList.remove('active'));
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.classList.remove('active');
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') overlay.classList.remove('active');
+        });
+    </script>
+
+
+
 @endsection

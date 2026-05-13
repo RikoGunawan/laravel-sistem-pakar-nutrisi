@@ -194,11 +194,11 @@
                         </tr>
                         <tr>
                             <td>Vitamin A (Retinol)</td>
-                            <td>{{ cleanDecimal($makanan->vitamin_a) }} mcg</td>
+                            <td>{{ cleanDecimal($makanan->vitamin_a) }} µg</td>
                         </tr>
                         <tr>
                             <td>Beta Karoten</td>
-                            <td>{{ cleanDecimal($makanan->beta_karoten) }} mcg</td>
+                            <td>{{ cleanDecimal($makanan->beta_karoten) }} µg</td>
                         </tr>
                         <tr>
                             <td>Vitamin B1</td>
@@ -216,9 +216,6 @@
                             <td>Vitamin C</td>
                             <td>{{ cleanDecimal($makanan->vitamin_c) }} mg</td>
                         </tr>
-                        {{-- <tr><td>Vitamin B6</td><td>{{ $makanan->vitamin_b6 ?? '-' }} mg</td></tr> --}}
-                        {{-- <tr><td>Vitamin B12</td><td>{{ $makanan->vitamin_b12 ?? '-' }} mcg</td></tr> --}}
-                        {{-- <tr><td>Natrium</td><td>{{ $makanan->natrium ?? '-' }} mg</td></tr> --}}
                     </tbody>
                 </table>
 
