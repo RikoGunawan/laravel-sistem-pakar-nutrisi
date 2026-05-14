@@ -48,10 +48,6 @@ class AnalisisNutrisi extends Model
           ->withTimestamps();
     }
 
-    public function tracePenalaran()
-    {
-        return $this->hasMany(TracePenalaran::class);
-    }
 
     public function rekomendasi()
     {

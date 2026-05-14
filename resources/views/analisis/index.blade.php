@@ -336,7 +336,7 @@
                     </div>
                 @endforeach
                 <div> Catatan: Jika metode pengolahan tidak bisa diklik maka data untuk metode pengolahan pada makanan
-                        tersebut belum tersedia.
+                    tersebut belum tersedia.
                 </div>
             </div>
             <button onclick="closeMetodeInfo()" class="btn btn-primary" style="margin-top: 20px;">Tutup</button>
@@ -378,24 +378,24 @@
             updateAnalyzeButton();
 
             // Jika ada batasan metode cocok
-            if (metodeCocok.length > 0) {
-                methodCards.forEach(card => {
-                    const metodeId = parseInt(card.dataset.metodeId);
-                    if (!metodeCocok.includes(metodeId)) {
-                        card.classList.add('disabled');
-                        card.style.opacity = '0.4';
-                        card.style.pointerEvents = 'none';
-                        card.querySelector('input').disabled = true;
-                    }
-                });
+            const semuaDisable = metodeCocok.length === 0;
 
-                // Tampilkan catatan jika ada
-                if (catatan.trim()) {
-                    catatanBox.style.display = 'block';
-                    catatanText.textContent = catatan;
-                } else {
-                    catatanBox.style.display = 'none';
-                }
+            methodCards.forEach(card => {
+                const metodeId = parseInt(card.dataset.metodeId);
+                const shouldDisable = semuaDisable || !metodeCocok.includes(metodeId);
+
+                card.classList.toggle('disabled', shouldDisable);
+                card.style.opacity = shouldDisable ? '0.4' : '1';
+                card.style.pointerEvents = shouldDisable ? 'none' : 'auto';
+                card.querySelector('input').disabled = shouldDisable;
+            });
+
+            if (semuaDisable) {
+                catatanBox.style.display = 'block';
+                catatanText.textContent = 'Belum ada metode pengolahan yang tersedia untuk makanan ini.';
+            } else if (catatan.trim()) {
+                catatanBox.style.display = 'block';
+                catatanText.textContent = catatan;
             } else {
                 catatanBox.style.display = 'none';
             }

@@ -3,7 +3,7 @@
 function cleanDecimal(mixed $value, ?string $nutrisiKey = null): string
 {
     if ($value === null || !is_numeric($value)) {
-        return '0';
+        return '-';
     }
 
     $floatValue = (float) $value;
