@@ -168,7 +168,53 @@
 
         .analyze-btn:disabled {
             opacity: 0.5;
-            cursor: not-allowed;
+            /* cursor: not-allowed; */
+            position: relative;
+        }
+
+        .analyze-btn:disabled::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+            pointer-events: none;
+            z-index: 10;
+            margin-bottom: 8px;
+        }
+
+        .analyze-btn:disabled:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Panah tooltip */
+        .analyze-btn:disabled::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: #333;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+            margin-bottom: 2px;
+        }
+
+        .analyze-btn:disabled:hover::before {
+            opacity: 1;
+            visibility: visible;
         }
 
         .help-modal {
@@ -291,7 +337,8 @@
                     </div>
                 </div>
 
-                <button type="submit" class="analyze-btn" id="analyzeBtn" disabled>
+                <button type="submit" class="analyze-btn" id="analyzeBtn" disabled
+                    data-tooltip="Pilih makanan dan minimal 1 metode pengolahan">
                     Analisis & Bandingkan
                 </button>
             </div>
@@ -392,7 +439,7 @@
 
             if (semuaDisable) {
                 catatanBox.style.display = 'block';
-                catatanText.textContent = 'Belum ada metode pengolahan yang tersedia untuk makanan ini.';
+                catatanText.textContent = 'Belum ada data metode pengolahan yang tersedia untuk makanan ini.';
             } else if (catatan.trim()) {
                 catatanBox.style.display = 'block';
                 catatanText.textContent = catatan;
@@ -497,7 +544,23 @@
             const makananDipilih = select.value && select.value.trim() !== ""; // lebih aman
             const adaMetode = selectedMethods.length > 0;
 
-            analyzeBtn.disabled = !(makananDipilih && adaMetode);
+            const btn = document.getElementById('analyzeBtn');
+
+            if (makananDipilih && adaMetode) {
+                btn.disabled = false;
+                btn.removeAttribute('data-tooltip');
+            } else {
+                btn.disabled = true;
+
+                // Tooltip yang lebih spesifik
+                if (!makananDipilih && !adaMetode) {
+                    btn.setAttribute('data-tooltip', 'Pilih makanan dan minimal 1 metode pengolahan');
+                } else if (!makananDipilih) {
+                    btn.setAttribute('data-tooltip', 'Silakan pilih makanan terlebih dahulu');
+                } else {
+                    btn.setAttribute('data-tooltip', 'Pilih minimal 1 metode pengolahan');
+                }
+            }
         }
 
         updateAnalyzeButton(); // panggil sekali saat halaman load

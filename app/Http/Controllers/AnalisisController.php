@@ -425,18 +425,21 @@ class AnalisisController extends Controller
         if (str_contains($nama, 'tepung') || str_contains($nama, 'breaded') || str_contains($nama, 'battered')) {
             return [
                 'teks' => "Lapisan tepung/batter pada goreng tepung bertindak sebagai insulasi termal yang melindungi bagian
-        dalam dari panas langsung, sehingga dapat lebih baik mempertahankan beberapa nutrisi internal. Namun, lapisan ini 
-        cenderung menyerap minyak lebih banyak, sehingga total kalori dan lemak meningkat dibanding goreng tanpa coating.",
-                'link' => 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10888343/',
+        dalam dari panas langsung, sehingga dapat lebih baik mempertahankan beberapa nutrisi internal. Namun, lapisan ini
+        cenderung menyerap minyak lebih banyak, sehingga total kalori dan lemak meningkat dibanding goreng tanpa coating.
+        Selain itu, tepung itu sendiri mengandung karbohidrat di mana jumlahnya tergantung pada ketebalan lapisan dan jenis
+        tepung yang digunakan. Pada aplikasi ini, lapisan tepung yang digunakan pada makanan dianggap menambah jumlah karbohidrat
+        sebesar 11 gram (sekitar 14 gram tepung), kecuali jika sumber data menyediakan data karbohidrat secara langsung.",
+                'link' => 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10888343/', // Lima et al
             ];
         }
 
         if (str_contains($nama, 'deep') || str_contains($nama, 'rendam')) {
             return [
-                'teks' => "Deep frying merendam bahan sepenuhnya dalam minyak panas sehingga terbentuk kerak luar (crust) dengan cepat 
-        yang berfungsi sebagai barrier. Proses ini menyebabkan penyerapan minyak yang signifikan, peningkatan kalori/lemak, 
+                'teks' => "Deep frying merendam bahan sepenuhnya dalam minyak panas sehingga terbentuk kerak luar (crust) dengan cepat
+        yang berfungsi sebagai barrier. Proses ini menyebabkan penyerapan minyak yang signifikan, peningkatan kalori/lemak,
         serta perubahan nutrisi dan vitamin sensitif panas. Bagian dalam terpapar panas lebih singkat dibanding beberapa metode lain, tapi secara keseluruhan meningkatkan kandungan lemak.",
-                'link' => 'https://link.springer.com/article/10.1007/s00217-024-04482-3',
+                'link' => 'https://link.springer.com/article/10.1007/s00217-024-04482-3', // Dangal et al
             ];
         }
 
@@ -445,17 +448,17 @@ class AnalisisController extends Controller
                 'teks' => "Metode goreng (frying) menyebabkan makanan menyerap minyak sehingga
                 kandungan lemak dan kalori meningkat signifikan. Jika suhu menggoreng tinggi, vitamin cenderung berkurang.
                 Walaupun demikian, Vitamin A (Retinol) dan Carotenoids relatif stabil jika suhu memasak tidak terlalu tinggi.",
-                'link' => 'https://onlinelibrary.wiley.com/doi/abs/10.1111/nbu.12584',
+                'link' => 'https://onlinelibrary.wiley.com/doi/abs/10.1111/nbu.12584', // Coe Spiro
             ];
         }
 
         if (str_contains($nama, 'stew') || str_contains($nama, 'simmer') || str_contains($nama, 'lama')) {
             return [
-                'teks' => "Pada metode stew/simmer, bahan dimasak dalam cairan dalam waktu lama dengan api kecil-sedang (di bawah suhu 100°C / tidak mendidih). 
-        Vitamin larut air (B dan C) serta mineral yang keluar dari bahan makanan masuk ke dalam kuah. 
-        Karena kuah biasanya ikut dikonsumsi, nutrisi tersebut tidak hilang melainkan tetap tersedia. 
+                'teks' => "Pada metode stew/simmer, bahan dimasak dalam cairan dalam waktu lama dengan api kecil-sedang (di bawah suhu 100°C / tidak mendidih).
+        Vitamin larut air (B dan C) serta mineral yang keluar dari bahan makanan masuk ke dalam kuah.
+        Karena kuah biasanya ikut dikonsumsi, nutrisi tersebut tidak hilang melainkan tetap tersedia.
         Ini berbeda dengan boiling biasa di mana air rebusan sering dibuang.",
-                'link' => 'https://onlinelibrary.wiley.com/doi/abs/10.1111/nbu.12584',  // Ringkasan berbasis studi (update 2025); atau cari review spesifik braising/stewing
+                'link' => 'https://onlinelibrary.wiley.com/doi/abs/10.1111/nbu.12584',
             ];
         }
 
@@ -477,13 +480,13 @@ class AnalisisController extends Controller
 
         if (str_contains($nama, 'panggang') || str_contains($nama, 'roast')) {
             return [
-                'teks' => "Panggang (oven) menggunakan panas kering yang dapat menyebabkan 
-                lemak pada daging meleleh dan menetes selama proses memasak sehingga kandungan lemak 
-                total pada bahan berkurang. Suhu tinggi dapat menyebabkan denaturasi protein yang artinya penyederhanaan 
-                struktur protein sehingga protein lebih mudah dicerna oleh tubuh 
-                namun jika panasnya terlalu tinggi, terjadi reaksi Maillard yang merusak lisina sehingga nilai gizi 
+                'teks' => "Panggang (oven) menggunakan panas kering yang dapat menyebabkan
+                lemak pada daging meleleh dan menetes selama proses memasak sehingga kandungan lemak
+                total pada bahan berkurang. Suhu tinggi dapat menyebabkan denaturasi protein yang artinya penyederhanaan
+                struktur protein sehingga protein lebih mudah dicerna oleh tubuh
+                namun jika panasnya terlalu tinggi, terjadi reaksi Maillard yang merusak lisina sehingga nilai gizi
                 proteinnya berkurang lebih banyak lagi.",
-                'link' => 'https://www.allresearchjournal.com/archives/2025/vol11issue10/PartC/11-10-20-294.pdf',
+                'link' => 'https://www.allresearchjournal.com/archives/2025/vol11issue10/PartC/11-10-20-294.pdf', // Pagey Landge
             ];
         }
         // Bakar / grill
@@ -491,9 +494,9 @@ class AnalisisController extends Controller
             return [
                 'teks' => "Pembakaran menyebabkan lemak meleleh dan menetes keluar (drip loss)
                 sehingga kandungan lemak turun. Vitamin dan nutrisi sensitif panas juga berkurang akibat suhu tinggi.
-                Suhu tinggi juga dapat menyebabkan denaturasi protein yang artinya penyederhanaan 
-                struktur protein sehingga protein lebih mudah dicerna oleh tubuh 
-                namun jika panasnya terlalu tinggi, terjadi reaksi Maillard yang merusak lisina sehingga nilai gizi 
+                Suhu tinggi juga dapat menyebabkan denaturasi protein yang artinya penyederhanaan
+                struktur protein sehingga protein lebih mudah dicerna oleh tubuh
+                namun jika panasnya terlalu tinggi, terjadi reaksi Maillard yang merusak lisina sehingga nilai gizi
                 proteinnya berkurang lebih banyak lagi.",
                 'link' => 'https://www.allresearchjournal.com/archives/2025/vol11issue10/PartC/11-10-20-294.pdf',
             ];
