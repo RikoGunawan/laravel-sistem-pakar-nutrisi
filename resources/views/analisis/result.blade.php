@@ -523,7 +523,7 @@
         </div>
 
         {{-- ===== RINGKASAN DETAIL PER NUTRISI ===== --}}
-        <h2 style="color: #000000; margin-bottom: 20px;">Ringkasan Detail Per Nutrisi</h2>
+        <h2 style="color: #000000; margin-bottom: 20px;">Ringkasan Detail per Nutrisi</h2>
         <div class="comparison-table-wrapper" style="margin-bottom: 30px;">
             <table class="comparison-table">
                 <thead>

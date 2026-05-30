@@ -112,33 +112,16 @@ class Makanan extends Model
         return $query->where('name', 'like', '%' . $search . '%');
     }
 
-    // TAMBAHAN: Method untuk cek apakah metode cocok
-    public function isMetodeCocok($metodeId)
+
+    public function isMetodeCocok($metodeId): bool
     {
-        if (empty($this->metode_cocok)) {
-            return true; // Jika tidak diisi, semua metode dianggap cocok
+        $metodeCocok = $this->metode_cocok;
+
+        // Jika null atau array kosong → TIDAK BOLEH dianalisis
+        if (empty($metodeCocok)) {
+            return false;
         }
 
-        return in_array($metodeId, $this->metode_cocok);
-    }
-
-    // TAMBAHAN: Get list metode yang TIDAK cocok
-    public function getMetodeTidakCocok()
-    {
-        if (empty($this->metode_cocok)) {
-            return [];
-        }
-
-        return \App\Models\MetodePengolahan::whereNotIn('id', $this->metode_cocok)->get();
-    }
-
-    // TAMBAHAN: Get list metode yang cocok
-    public function getMetodeCocokList()
-    {
-        if (empty($this->metode_cocok)) {
-            return \App\Models\MetodePengolahan::all();
-        }
-
-        return \App\Models\MetodePengolahan::whereIn('id', $this->metode_cocok)->get();
+        return in_array($metodeId, $metodeCocok);
     }
 }
